@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
-import { OnlineOrder } from "./components/OnlineOrder";
-import { CashierView } from "./components/CashierView";
-import { KitchenView } from "./components/KitchenView";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { PedidosPage } from "./pages/PedidosPage";
+import { CajaPage } from "./pages/CajaPage";
+import { CocinaPage } from "./pages/CocinaPage";
 import { Order } from "./components/OrderCard";
 import { toast } from "sonner@2.0.3";
 import { Toaster } from "./components/ui/sonner";
+import { useAuth } from "./contexts/AuthContext";
 
 // Mock data for demonstration
 const generateMockOrders = (): Order[] => {
@@ -60,8 +63,8 @@ const generateMockOrders = (): Order[] => {
   return mockOrders;
 };
 
-export default function App() {
-  const [currentView, setCurrentView] = useState("order");
+function AppContent() {
+  const { getDefaultRoute } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [nextOrderId, setNextOrderId] = useState(5);
 
@@ -84,9 +87,6 @@ export default function App() {
     toast.success(`Nuevo pedido #${newOrder.id} recibido`, {
       description: `${newOrder.customerName} - $${newOrder.total.toFixed(2)}`
     });
-
-    // Automatically switch to cashier view for order management
-    setCurrentView("cashier");
   };
 
   const handleOrderStatusChange = (orderId: string, newStatus: Order["status"]) => {
@@ -125,44 +125,53 @@ export default function App() {
     toast.success("Datos actualizados");
   };
 
-  const renderCurrentView = () => {
-    switch (currentView) {
-      case "order":
-        return <OnlineOrder onOrderSubmit={handleNewOrder} />;
-      case "cashier":
-        return (
-          <CashierView 
-            orders={orders}
-            onOrderStatusChange={handleOrderStatusChange}
-            onOrderSubmit={handleNewOrder}
-            onRefresh={handleRefresh}
-          />
-        );
-      case "kitchen":
-        return (
-          <KitchenView 
-            orders={orders}
-            onOrderStatusChange={handleOrderStatusChange}
-            onRefresh={handleRefresh}
-          />
-        );
-      default:
-        return <OnlineOrder onOrderSubmit={handleNewOrder} />;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
-      <Navigation 
-        currentView={currentView} 
-        onViewChange={setCurrentView} 
-      />
+      <Navigation />
       
-      <main className="pb-6">
-        {renderCurrentView()}
+      <main>
+        <Routes>
+          <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
+          <Route
+            path="/pedidos"
+            element={<PedidosPage onOrderSubmit={handleNewOrder} />}
+          />
+          <Route
+            path="/caja"
+            element={
+              <CajaPage
+                orders={orders}
+                onOrderStatusChange={handleOrderStatusChange}
+                onOrderSubmit={handleNewOrder}
+                onRefresh={handleRefresh}
+              />
+            }
+          />
+          <Route
+            path="/cocina"
+            element={
+              <CocinaPage
+                orders={orders}
+                onOrderStatusChange={handleOrderStatusChange}
+                onRefresh={handleRefresh}
+              />
+            }
+          />
+          <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
+        </Routes>
       </main>
       
       <Toaster />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <ProtectedRoute>
+        <AppContent />
+      </ProtectedRoute>
+    </BrowserRouter>
   );
 }

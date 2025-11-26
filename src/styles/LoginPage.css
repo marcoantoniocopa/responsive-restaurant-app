@@ -1,0 +1,62 @@
+/* Login Page Styles */
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+  padding: 1rem;
+}
+
+.login-container.dark {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+}
+
+/* Submit Button - Compact sizing */
+.login-submit-button {
+  width: 100%;
+  height: 2.25rem; /* 36px - matches input height */
+  margin-top: 1.5rem;
+  background-color: #f97316;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.login-submit-button:hover:not(:disabled) {
+  background-color: #ea580c;
+}
+
+.login-submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-submit-button span,
+.login-submit-button svg {
+  color: #ffffff;
+  fill: currentColor;
+}
+
+.login-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
