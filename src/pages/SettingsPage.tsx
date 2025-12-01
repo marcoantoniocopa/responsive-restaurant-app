@@ -14,6 +14,7 @@ import {
 import { Badge } from '../components/ui/badge';
 import { Plus, Trash2, Save, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface CompletoRule {
   categoryId: string;
@@ -24,6 +25,8 @@ interface CompletoRule {
 interface Settings {
   completoPrice: number;
   completoRules: CompletoRule[];
+  numberOfTables: number;
+  currencySymbol: string;
 }
 
 interface Category {
@@ -34,12 +37,15 @@ interface Category {
 export function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     completoPrice: 12.99,
-    completoRules: []
+    completoRules: [],
+    numberOfTables: 6,
+    currencySymbol: '$'
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { refreshSettings } = useSettings();
 
   useEffect(() => {
     fetchData();
@@ -131,6 +137,15 @@ export function SettingsPage() {
       return;
     }
 
+    if (settings.numberOfTables < 1 || settings.numberOfTables > 50) {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Number of tables must be between 1 and 50',
+      });
+      return;
+    }
+
     for (const rule of settings.completoRules) {
       if (!rule.categoryId) {
         toast({
@@ -145,6 +160,7 @@ export function SettingsPage() {
     setSaving(true);
     try {
       await apiClient.updateSettings(settings);
+      await refreshSettings(); // Refresh global settings
       toast({
         title: 'Success',
         description: 'Settings updated successfully. Completos will be regenerated.',
@@ -184,6 +200,50 @@ export function SettingsPage() {
         <div className="text-center py-8">Loading...</div>
       ) : (
         <>
+          {/* General Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle>General Settings</CardTitle>
+              <CardDescription>
+                Basic restaurant configuration
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Label htmlFor="numberOfTables" className="min-w-[150px]">
+                  Number of Tables
+                </Label>
+                <Input
+                  id="numberOfTables"
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={settings.numberOfTables}
+                  onChange={(e) => setSettings({ ...settings, numberOfTables: parseInt(e.target.value) || 1 })}
+                  className="max-w-[200px]"
+                />
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <Label htmlFor="currencySymbol" className="min-w-[150px]">
+                  Currency
+                </Label>
+                <Select
+                  value={settings.currencySymbol}
+                  onValueChange={(value) => setSettings({ ...settings, currencySymbol: value })}
+                >
+                  <SelectTrigger className="max-w-[200px]">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="$">Dolares - $</SelectItem>
+                    <SelectItem value="Bs.">Bolivianos - Bs.</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Completo Price Configuration */}
           <Card>
             <CardHeader>
@@ -195,7 +255,7 @@ export function SettingsPage() {
             <CardContent>
               <div className="flex items-center gap-4">
                 <Label htmlFor="completoPrice" className="min-w-[100px]">
-                  Price ($)
+                  Price ({settings.currencySymbol})
                 </Label>
                 <Input
                   id="completoPrice"
@@ -318,7 +378,7 @@ export function SettingsPage() {
                     {' = Completo'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    All combinations will be generated at ${settings.completoPrice.toFixed(2)} each
+                    All combinations will be generated at {settings.currencySymbol}{settings.completoPrice.toFixed(2)} each
                   </p>
                 </div>
               )}

@@ -1,59 +1,92 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Badge } from "./ui/badge";
-import { Plus, Minus, ShoppingCart } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
+import { Plus, Minus, ShoppingCart, Loader2 } from "lucide-react";
 import { Order } from "./OrderCard";
+import { apiClient } from "../lib/api";
+import { useToast } from "../hooks/use-toast";
+import { Currency } from "./Currency";
 
-interface MenuItem {
-  id: string;
+interface Product {
+  _id: string;
   name: string;
   description: string;
-  price: number;
-  category: string;
+  sellPrice: number;
+  categoryId: {
+    _id: string;
+    name: string;
+  };
+  isAvailable: boolean;
+  isVirtual?: boolean;
+}
+
+interface Category {
+  _id: string;
+  name: string;
 }
 
 interface OnlineOrderProps {
   onOrderSubmit: (order: Omit<Order, "id" | "timestamp" | "status">) => void;
 }
 
-const menuItems: MenuItem[] = [
-  {
-    id: "1",
-    name: "Menú Ejecutivo",
-    description: "Plato principal + ensalada + bebida + postre",
-    price: 15.99,
-    category: "Menús"
-  },
-  {
-    id: "2", 
-    name: "Menú Saludable",
-    description: "Ensalada grande + proteína + bebida natural",
-    price: 12.99,
-    category: "Menús"
-  },
-  {
-    id: "3",
-    name: "Menú Vegetariano",
-    description: "Plato vegetariano + ensalada + bebida + postre",
-    price: 13.99,
-    category: "Menús"
-  },
-  {
-    id: "4",
-    name: "Menú del Día",
-    description: "Sopa + plato principal + bebida + postre",
-    price: 11.99,
-    category: "Menús"
-  }
-];
-
 export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [customerName, setCustomerName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsData, categoriesData] = await Promise.all([
+          apiClient.getProducts(),
+          apiClient.getCategories(),
+        ]);
+        
+        // Filter only available products
+        const availableProducts = Array.isArray(productsData)
+          ? productsData.filter((product: Product) => product.isAvailable)
+          : [];
+        
+        // Sort categories: Completo first, then others alphabetically
+        const sortedCategories = Array.isArray(categoriesData)
+          ? [...categoriesData].sort((a, b) => {
+              if (a.name === "Completo") return -1;
+              if (b.name === "Completo") return 1;
+              return a.name.localeCompare(b.name);
+            })
+          : [];
+        
+        setProducts(availableProducts);
+        setCategories(sortedCategories);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load products. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [toast]);
+
+  const filteredProducts = selectedCategory === "all"
+    ? products
+    : products.filter(
+        (product) => product.categoryId?._id === selectedCategory
+      );
 
   const addToCart = (itemId: string) => {
     setCart(prev => ({
@@ -76,8 +109,8 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
 
   const getCartTotal = () => {
     return Object.entries(cart).reduce((total, [itemId, quantity]) => {
-      const item = menuItems.find(i => i.id === itemId);
-      return total + (item ? item.price * quantity : 0);
+      const item = products.find(i => i._id === itemId);
+      return total + (item ? item.sellPrice * quantity : 0);
     }, 0);
   };
 
@@ -93,11 +126,11 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
     setIsSubmitting(true);
     
     const orderItems = Object.entries(cart).map(([itemId, quantity]) => {
-      const item = menuItems.find(i => i.id === itemId)!;
+      const item = products.find(i => i._id === itemId)!;
       return {
         name: item.name,
         quantity,
-        price: item.price
+        price: item.sellPrice
       };
     });
 
@@ -112,6 +145,11 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     onOrderSubmit(order);
+    
+    toast({
+      title: "Pedido confirmado",
+      description: "Tu pedido ha sido recibido exitosamente.",
+    });
     
     // Reset form
     setCart({});
@@ -150,57 +188,102 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
       {/* Menu Items */}
       <div className="space-y-4">
         <h3>Nuestros Menús</h3>
-        {menuItems.map((item) => (
-          <Card key={item.id}>
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="text-lg">{item.name}</h4>
-                    <Badge variant="secondary" className="text-xs">
-                      ${item.price.toFixed(2)}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {item.description}
-                  </p>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  {cart[item.id] ? (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => removeFromCart(item.id)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <span className="w-8 text-center">{cart[item.id]}</span>
-                      <Button
-                        size="sm"
-                        onClick={() => addToCart(item.id)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      onClick={() => addToCart(item.id)}
-                      className="flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Agregar
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <>
+            {/* Category Tabs */}
+            <Tabs
+              defaultValue="all"
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+              className="w-full"
+            >
+              <TabsList className="w-full justify-start flex-wrap h-auto">
+                {categories.map((category) => (
+                  <TabsTrigger
+                    key={category._id}
+                    value={category._id}
+                    className="flex-1 min-w-fit"
+                  >
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+                <TabsTrigger value="all" className="flex-1 min-w-fit">
+                  Todos
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            {/* Products List */}
+            <div className="space-y-3 mt-4">
+              {filteredProducts.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center text-muted-foreground">
+                    No hay productos disponibles en esta categoría.
+                  </CardContent>
+                </Card>
+              ) : (
+                filteredProducts.map((product) => (
+                  <Card key={product._id}>
+                    <CardContent className="p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <h4 className="text-lg font-semibold">{product.name}</h4>
+                            <Badge variant="secondary" className="text-xs">
+                              <Currency amount={product.sellPrice} />
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {product.description || "Producto delicioso"}
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          {cart[product._id] ? (
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => removeFromCart(product._id)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="w-8 text-center font-medium">
+                                {cart[product._id]}
+                              </span>
+                              <Button
+                                size="sm"
+                                onClick={() => addToCart(product._id)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => addToCart(product._id)}
+                              className="flex items-center gap-2"
+                            >
+                              <Plus className="h-4 w-4" />
+                              Agregar
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Cart Summary & Submit */}
@@ -215,7 +298,7 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
                 </span>
               </div>
               <span className="text-lg">
-                Total: ${getCartTotal().toFixed(2)}
+                Total: <Currency amount={getCartTotal()} />
               </span>
             </div>
             

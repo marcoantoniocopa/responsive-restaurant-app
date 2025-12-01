@@ -97,7 +97,7 @@ export function Navigation() {
                   className={({ isActive }) =>
                     `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-orange-500 text-white'
+                        ? 'bg-black text-white dark:bg-white dark:text-black'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`
                   }
@@ -203,7 +203,7 @@ export function Navigation() {
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
                               isActive
-                                ? 'bg-orange-500 text-white'
+                                ? 'bg-black text-white dark:bg-white dark:text-black'
                                 : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                             }`
                           }

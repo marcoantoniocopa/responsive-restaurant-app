@@ -30,8 +30,9 @@ import {
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
 import { ProductForm } from '../components/ProductForm';
-import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, RefreshCw } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
+import { Currency } from '../components/Currency';
 
 interface Category {
   _id: string;
@@ -177,10 +178,16 @@ export function ProductsPage() {
           <h1 className="text-3xl font-bold">Products Management</h1>
           <p className="text-muted-foreground">Manage your restaurant products</p>
         </div>
-        <Button onClick={handleAddProduct} size="lg">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={fetchProducts} variant="outline" size="lg">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Actualizar
+          </Button>
+          <Button onClick={handleAddProduct} size="lg">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Product
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -248,7 +255,7 @@ export function ProductsPage() {
                               )}
                             </TableCell>
                             <TableCell className="text-right font-semibold">
-                              ${product.sellPrice.toFixed(2)}
+                              <Currency amount={product.sellPrice} />
                             </TableCell>
                             <TableCell className="text-center">
                               {product.isVirtual ? (
