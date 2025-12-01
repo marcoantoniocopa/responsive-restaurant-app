@@ -191,14 +191,73 @@ class ApiClient {
   }
 
   // Products endpoints
-  async getProducts() {
-    const response = await this.client.get('/products');
+  async getProducts(params?: any) {
+    const response = await this.client.get('/products', { params });
+    return response.data.data;
+  }
+
+  async getProduct(id: string) {
+    const response = await this.client.get(`/products/${id}`);
+    return response.data.data;
+  }
+
+  async createProduct(productData: any) {
+    const response = await this.client.post('/products', productData);
+    return response.data.data;
+  }
+
+  async updateProduct(id: string, productData: any) {
+    const response = await this.client.put(`/products/${id}`, productData);
+    return response.data.data;
+  }
+
+  async deleteProduct(id: string, reason?: string) {
+    const response = await this.client.delete(`/products/${id}`, {
+      data: { reason }
+    });
+    return response.data;
+  }
+
+  async toggleProductAvailability(id: string) {
+    const response = await this.client.patch(`/products/${id}/availability`);
     return response.data.data;
   }
 
   // Categories endpoints
   async getCategories() {
     const response = await this.client.get('/categories');
+    return response.data.data;
+  }
+
+  async getCategory(id: string) {
+    const response = await this.client.get(`/categories/${id}`);
+    return response.data.data;
+  }
+
+  async createCategory(categoryData: any) {
+    const response = await this.client.post('/categories', categoryData);
+    return response.data.data;
+  }
+
+  async updateCategory(id: string, categoryData: any) {
+    const response = await this.client.put(`/categories/${id}`, categoryData);
+    return response.data.data;
+  }
+
+  async deleteCategory(id: string, reason?: string) {
+    const response = await this.client.delete(`/categories/${id}`, {
+      data: { reason }
+    });
+    return response.data;
+  }
+
+  async restoreCategory(id: string) {
+    const response = await this.client.patch(`/categories/${id}/restore`);
+    return response.data.data;
+  }
+
+  async getDeletedCategories() {
+    const response = await this.client.get('/categories/deleted');
     return response.data.data;
   }
 }

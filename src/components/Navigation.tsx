@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button } from "./ui/button";
-import { ShoppingBag, Users, ChefHat, LogOut, Menu, X } from "lucide-react";
+import { ShoppingBag, Users, ChefHat, LogOut, Menu, X, Package, FolderTree } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import {
   DropdownMenu,
@@ -57,6 +57,18 @@ export function Navigation() {
       label: 'Cocina',
       icon: ChefHat,
       show: hasRole('admin') || hasRole('kitchen') || hasRole('chef'),
+    },
+    {
+      path: '/products',
+      label: 'Products',
+      icon: Package,
+      show: hasRole('admin'),
+    },
+    {
+      path: '/categories',
+      label: 'Categories',
+      icon: FolderTree,
+      show: hasRole('admin'),
     },
   ];
 

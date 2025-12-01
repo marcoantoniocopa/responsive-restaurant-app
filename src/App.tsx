@@ -5,9 +5,11 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PedidosPage } from "./pages/PedidosPage";
 import { CajaPage } from "./pages/CajaPage";
 import { CocinaPage } from "./pages/CocinaPage";
+import { ProductsPage } from "./pages/ProductsPage";
+import { CategoriesPage } from "./pages/CategoriesPage";
 import { Order } from "./components/OrderCard";
 import { toast } from "sonner@2.0.3";
-import { Toaster } from "./components/ui/sonner";
+import { Toaster } from "./components/ui/toaster";
 import { useAuth } from "./contexts/AuthContext";
 
 // Mock data for demonstration
@@ -156,6 +158,14 @@ function AppContent() {
                 onRefresh={handleRefresh}
               />
             }
+          />
+          <Route
+            path="/products"
+            element={<ProductsPage />}
+          />
+          <Route
+            path="/categories"
+            element={<CategoriesPage />}
           />
           <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
         </Routes>
