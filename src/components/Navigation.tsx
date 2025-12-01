@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button } from "./ui/button";
-import { ShoppingBag, Users, ChefHat, LogOut, Menu, X, Package, FolderTree } from "lucide-react";
+import { ShoppingBag, Users, ChefHat, LogOut, Menu, X, Package, FolderTree, Settings } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import {
   DropdownMenu,
@@ -68,6 +68,12 @@ export function Navigation() {
       path: '/categories',
       label: 'Categories',
       icon: FolderTree,
+      show: hasRole('admin'),
+    },
+    {
+      path: '/settings',
+      label: 'Settings',
+      icon: Settings,
       show: hasRole('admin'),
     },
   ];

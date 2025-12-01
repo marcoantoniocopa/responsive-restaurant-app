@@ -51,6 +51,8 @@ interface Product {
   };
   isAvailable: boolean;
   isDeleted: boolean;
+  isVirtual?: boolean; // Flag for auto-generated completos
+  components?: string[]; // Product IDs that make up this completo
 }
 
 export function ProductsPage() {
@@ -231,47 +233,69 @@ export function ProductsPage() {
                       <TableBody>
                         {filteredProducts.map((product) => (
                           <TableRow key={product._id}>
-                            <TableCell className="font-medium">{product.name}</TableCell>
+                            <TableCell className="font-medium">
+                              {product.name}
+                              {product.isVirtual && (
+                                <Badge variant="secondary" className="ml-2 text-xs">
+                                  Auto-generated
+                                </Badge>
+                              )}
+                            </TableCell>
                             <TableCell className="max-w-md truncate">
                               {product.description}
+                              {product.isVirtual && !product.description && (
+                                <span className="text-muted-foreground italic">Generated combo</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-right font-semibold">
                               ${product.sellPrice.toFixed(2)}
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge variant={product.isAvailable ? 'default' : 'secondary'}>
-                                {product.isAvailable ? 'Available' : 'Unavailable'}
-                              </Badge>
+                              {product.isVirtual ? (
+                                <Badge variant="outline">Auto</Badge>
+                              ) : (
+                                <Badge variant={product.isAvailable ? 'default' : 'secondary'}>
+                                  {product.isAvailable ? 'Available' : 'Unavailable'}
+                                </Badge>
+                              )}
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleToggleAvailability(product._id)}
-                                  title={product.isAvailable ? 'Mark as unavailable' : 'Mark as available'}
-                                >
-                                  {product.isAvailable ? (
-                                    <ToggleRight className="h-4 w-4 text-green-600" />
-                                  ) : (
-                                    <ToggleLeft className="h-4 w-4 text-gray-400" />
-                                  )}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditProduct(product)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteClick(product._id)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-red-600" />
-                                </Button>
-                              </div>
+                              {product.isVirtual ? (
+                                <div className="flex justify-end">
+                                  <span className="text-xs text-muted-foreground italic">
+                                    Managed in Settings
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex justify-end gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleToggleAvailability(product._id)}
+                                    title={product.isAvailable ? 'Mark as unavailable' : 'Mark as available'}
+                                  >
+                                    {product.isAvailable ? (
+                                      <ToggleRight className="h-4 w-4 text-green-600" />
+                                    ) : (
+                                      <ToggleLeft className="h-4 w-4 text-gray-400" />
+                                    )}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleEditProduct(product)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteClick(product._id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-red-600" />
+                                  </Button>
+                                </div>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}

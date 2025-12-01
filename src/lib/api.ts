@@ -260,6 +260,17 @@ class ApiClient {
     const response = await this.client.get('/categories/deleted');
     return response.data.data;
   }
+
+  // Settings endpoints
+  async getSettings() {
+    const response = await this.client.get('/settings');
+    return response.data.data;
+  }
+
+  async updateSettings(settingsData: any) {
+    const response = await this.client.put('/settings', settingsData);
+    return response.data.data;
+  }
 }
 
 export const apiClient = new ApiClient();

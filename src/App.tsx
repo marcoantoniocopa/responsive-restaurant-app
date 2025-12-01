@@ -7,6 +7,7 @@ import { CajaPage } from "./pages/CajaPage";
 import { CocinaPage } from "./pages/CocinaPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { Order } from "./components/OrderCard";
 import { toast } from "sonner@2.0.3";
 import { Toaster } from "./components/ui/toaster";
@@ -166,6 +167,10 @@ function AppContent() {
           <Route
             path="/categories"
             element={<CategoriesPage />}
+          />
+          <Route
+            path="/settings"
+            element={<SettingsPage />}
           />
           <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
         </Routes>
