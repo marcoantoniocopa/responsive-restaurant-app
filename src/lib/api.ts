@@ -32,9 +32,10 @@ class ApiClient {
       (response) => response,
       async (error: AxiosError) => {
         const originalRequest = error.config as any;
+        const isLoginPage = window.location.pathname === '/login';
 
-        // If error is 401 and we haven't retried yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // If error is 401 and we haven't retried yet AND we're not on login page
+        if (error.response?.status === 401 && !originalRequest._retry && !isLoginPage) {
           originalRequest._retry = true;
 
           try {
@@ -174,7 +175,12 @@ class ApiClient {
     return response.data.data;
   }
 
-  async updateOrderStatus(orderId: string, status: string) {
+  async createCustomerOrder(orderData: any) {
+    const response = await this.client.post('/orders/customer', orderData);
+    return response.data.data;
+  }
+
+  async updateOrderStatus(orderId: string, status: number) {
     const response = await this.client.patch(`/orders/${orderId}/status`, { status });
     return response.data.data;
   }
@@ -258,6 +264,27 @@ class ApiClient {
 
   async getDeletedCategories() {
     const response = await this.client.get('/categories/deleted');
+    return response.data.data;
+  }
+
+  // Config endpoints
+  async getPaymentMethods() {
+    const response = await this.client.get('/config/payment-methods');
+    return response.data.data;
+  }
+
+  async getOrderTypes() {
+    const response = await this.client.get('/config/order-types');
+    return response.data.data;
+  }
+
+  async getOrderStatuses() {
+    const response = await this.client.get('/config/order-statuses');
+    return response.data.data;
+  }
+
+  async getAllConfig() {
+    const response = await this.client.get('/config/all');
     return response.data.data;
   }
 

@@ -30,9 +30,15 @@ interface SettingsProviderProps {
 export function SettingsProvider({ children }: SettingsProviderProps) {
   const [currencySymbol, setCurrencySymbol] = useState<string>('$');
   const [numberOfTables, setNumberOfTables] = useState<number>(6);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
 
   const fetchSettings = async () => {
+    if (hasFetched) return; // Prevent duplicate fetches
+    
+    setLoading(true);
+    setHasFetched(true);
+    
     try {
       const settings = await apiClient.getSettings();
       setCurrencySymbol(settings.currencySymbol || '$');
@@ -42,14 +48,19 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       // Use defaults if settings can't be loaded
       setCurrencySymbol('$');
       setNumberOfTables(6);
+      setHasFetched(false); // Allow retry on error
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    // Only fetch if we're not on the login page
+    const isLoginPage = window.location.pathname === '/login';
+    if (!isLoginPage && !hasFetched) {
+      fetchSettings();
+    }
+  }, [hasFetched]);
 
   const refreshSettings = async () => {
     setLoading(true);

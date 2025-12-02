@@ -22,6 +22,7 @@ interface Product {
   };
   isAvailable: boolean;
   isVirtual?: boolean;
+  components?: string[];  // Array of product IDs for virtual completo products
 }
 
 interface Category {
@@ -125,36 +126,67 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
 
     setIsSubmitting(true);
     
-    const orderItems = Object.entries(cart).map(([itemId, quantity]) => {
-      const item = products.find(i => i._id === itemId)!;
-      return {
-        name: item.name,
-        quantity,
-        price: item.sellPrice
+    try {
+      const orderItems = Object.entries(cart).map(([itemId, quantity]) => {
+        const item = products.find(i => i._id === itemId)!;
+        
+        // Handle Completo (virtual) products
+        if (item.isVirtual && item.components) {
+          return {
+            productName: item.name,
+            quantity,
+            unitPrice: item.sellPrice,
+            isCompleto: true,
+            completoComponents: item.components.map(compId => {
+              const component = products.find(p => p._id === compId);
+              return {
+                productId: compId,
+                productName: component?.name || 'Unknown'
+              };
+            })
+          };
+        }
+        
+        // Handle Single products
+        return {
+          productId: itemId,
+          productName: item.name,
+          quantity,
+          unitPrice: item.sellPrice,
+          isCompleto: false
+        };
+      });
+
+      // Create order via API
+      const orderData = {
+        customerName: customerName.trim(),
+        items: orderItems,
+        paymentMethod: 1,  // 1 = Efectivo (default for online orders)
+        orderType: 3,      // 3 = Llevar Web (online takeaway)
+        isReservation: true,
+        reservationTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),  // 30 minutes from now
       };
-    });
 
-    const order: Omit<Order, "id" | "timestamp" | "status"> = {
-      customerName: customerName.trim(),
-      items: orderItems,
-      total: getCartTotal(),
-      orderType: "online"
-    };
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    onOrderSubmit(order);
-    
-    toast({
-      title: "Pedido confirmado",
-      description: "Tu pedido ha sido recibido exitosamente.",
-    });
-    
-    // Reset form
-    setCart({});
-    setCustomerName("");
-    setIsSubmitting(false);
+      await apiClient.createCustomerOrder(orderData);
+      
+      toast({
+        title: "Pedido confirmado",
+        description: "Tu pedido ha sido recibido exitosamente.",
+      });
+      
+      // Reset form
+      setCart({});
+      setCustomerName("");
+    } catch (error: any) {
+      console.error("Failed to create order:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

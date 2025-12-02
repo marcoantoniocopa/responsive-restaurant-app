@@ -23,6 +23,7 @@ interface Product {
   };
   isAvailable: boolean;
   isVirtual?: boolean;
+  components?: string[];  // Array of product IDs for virtual completo products
 }
 
 interface Category {
@@ -134,35 +135,68 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
 
     setIsSubmitting(true);
     
-    const orderItems = Object.entries(cart).map(([itemId, quantity]) => {
-      const item = products.find(i => i._id === itemId)!;
-      return {
-        name: item.name,
-        quantity,
-        price: item.sellPrice
+    try {
+      const orderItems = Object.entries(cart).map(([itemId, quantity]) => {
+        const item = products.find(i => i._id === itemId)!;
+        
+        // Handle Completo (virtual) products
+        if (item.isVirtual && item.components) {
+          return {
+            productName: item.name,
+            quantity,
+            unitPrice: item.sellPrice,
+            isCompleto: true,
+            completoComponents: item.components.map(compId => {
+              const component = products.find(p => p._id === compId);
+              return {
+                productId: compId,
+                productName: component?.name || 'Unknown'
+              };
+            })
+          };
+        }
+        
+        // Handle Single products
+        return {
+          productId: itemId,
+          productName: item.name,
+          quantity,
+          unitPrice: item.sellPrice,
+          isCompleto: false
+        };
+      });
+
+      const finalCustomerName = orderType === "dinein" 
+        ? `Mesa ${Date.now().toString().slice(-3)}` 
+        : customerName.trim();
+
+      // Create order via API
+      const orderData = {
+        customerName: finalCustomerName,
+        items: orderItems,
+        paymentMethod: 1,  // 1 = Efectivo (default for cashier orders)
+        orderType: orderType === "takeaway" ? 1 : 2,  // 1 = Llevar, 2 = En Local
+        isReservation: false,
       };
-    });
 
-    const finalCustomerName = orderType === "dinein" ? `Mesa ${Date.now().toString().slice(-3)}` : customerName.trim();
-
-    const order: Omit<Order, "id" | "timestamp" | "status"> = {
-      customerName: finalCustomerName,
-      items: orderItems,
-      total: getCartTotal(),
-      orderType: orderType === "takeaway" ? "takeaway" : "local"
-    };
-
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    onOrderSubmit(order);
-    
-    toast({
-      title: "Pedido creado",
-      description: "El pedido ha sido creado exitosamente.",
-    });
-    
-    onClose();
+      await apiClient.createOrder(orderData);
+      
+      toast({
+        title: "Pedido creado",
+        description: "El pedido ha sido creado exitosamente.",
+      });
+      
+      onClose();
+    } catch (error: any) {
+      console.error("Failed to create order:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to create order. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
