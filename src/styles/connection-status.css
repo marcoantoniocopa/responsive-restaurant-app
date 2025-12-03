@@ -1,0 +1,55 @@
+/* Connection Status Badge Styles */
+
+.connection-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.connection-status-icon {
+  height: 0.75rem;
+  width: 0.75rem;
+  margin-right: 0.25rem;
+}
+
+/* Connected State - Tiempo Real */
+.connection-status-badge.connected {
+  background-color: #f0fdf4 !important; /* green-50 */
+  color: #15803d !important; /* green-700 */
+  border-color: #bbf7d0 !important; /* green-200 */
+}
+
+.connection-status-badge.connected:hover {
+  background-color: #dcfce7 !important; /* green-100 */
+}
+
+/* Disconnected State - Polling */
+.connection-status-badge.disconnected {
+  background-color: #f9fafb !important; /* gray-50 */
+  color: #6b7280 !important; /* gray-500 */
+  border-color: #e5e7eb !important; /* gray-200 */
+}
+
+.connection-status-badge.disconnected:hover {
+  background-color: #f3f4f6 !important; /* gray-100 */
+}
+
+/* Icon animations */
+.connection-status-badge.connected .connection-status-icon {
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+

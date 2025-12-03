@@ -4,12 +4,14 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent } from "./ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
-import { RefreshCw, Clock, AlertCircle, ChefHat, Loader2, ChevronDown, ChevronRight, CheckCircle, XCircle } from "lucide-react";
+import { RefreshCw, Clock, AlertCircle, ChefHat, Loader2, ChevronDown, ChevronRight, CheckCircle, XCircle, Wifi, WifiOff } from "lucide-react";
 import { apiClient } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
 import { useConfig } from "../contexts/ConfigContext";
+import { useSocket } from "../contexts/SocketContext";
 import { ORDER_STATUS } from "../constants/orderStatus";
 import "../styles/kitchen.css";
+import "../styles/connection-status.css";
 
 interface KitchenViewProps {}
 
@@ -25,6 +27,7 @@ export function KitchenView({}: KitchenViewProps) {
   const [isCancelledOpen, setIsCancelledOpen] = useState(false);
   const { toast } = useToast();
   const { getOrderStatusName } = useConfig();
+  const { socket, isConnected, on, off } = useSocket();
 
   // Get local day start and end as ISO strings (UTC)
   const getLocalDayRangeAsUTC = () => {
@@ -98,6 +101,101 @@ export function KitchenView({}: KitchenViewProps) {
     fetchOrders();
   }, []);
 
+  // Socket.io real-time updates
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    console.log('🔌 Setting up kitchen socket listeners');
+
+    // Handler for new order created
+    const handleOrderCreated = (order: any) => {
+      console.log('📥 New order received:', order.orderNumber);
+      
+      // Transform and add the new order to the list
+      const newOrder: KitchenOrder = {
+        id: order._id,
+        orderNumber: order.orderNumber,
+        customerName: order.customerName,
+        tableNumber: order.tableNumber,
+        items: order.items.map((item: any) => ({
+          name: item.productName,
+          quantity: item.quantity,
+          isCompleto: item.isCompleto,
+          components: item.completoComponents?.map((comp: any) => comp.productName),
+        })),
+        status: order.currentStatus,
+        timestamp: new Date(order.createdAt),
+        orderType: order.orderType,
+      };
+
+      setOrders((prevOrders) => [newOrder, ...prevOrders]);
+
+      // Show toast notification
+      toast({
+        title: "🔔 Nuevo Pedido",
+        description: `Pedido #${order.orderNumber} - ${order.customerName || 'Cliente'}`,
+        duration: 5000,
+      });
+
+      // Auto-expand pending section if collapsed
+      setIsPendingOpen(true);
+    };
+
+    // Handler for order cancelled
+    const handleOrderCancelled = (data: { orderId: string; orderNumber: string }) => {
+      console.log('❌ Order cancelled:', data.orderNumber);
+      
+      // Remove the order from the list
+      setOrders((prevOrders) => prevOrders.filter((order) => order.id !== data.orderId));
+
+      // Show toast notification
+      toast({
+        title: "❌ Pedido Cancelado",
+        description: `Pedido #${data.orderNumber} ha sido cancelado`,
+        duration: 5000,
+      });
+    };
+
+    // Handler for order status updated
+    const handleOrderStatusUpdated = (order: any) => {
+      console.log('🔄 Order status updated:', order.orderNumber, '- Status:', order.currentStatus);
+      
+      // Update the order in the list
+      setOrders((prevOrders) => {
+        return prevOrders.map((existingOrder) => {
+          if (existingOrder.id === order._id) {
+            return {
+              ...existingOrder,
+              status: order.currentStatus,
+              // Optionally update other fields if needed
+            };
+          }
+          return existingOrder;
+        });
+      });
+
+      // Show toast notification
+      toast({
+        title: "🔄 Estado Actualizado",
+        description: `Pedido #${order.orderNumber} - ${getOrderStatusName(order.currentStatus)}`,
+        duration: 3000,
+      });
+    };
+
+    // Subscribe to events
+    on('order:created', handleOrderCreated);
+    on('order:cancelled', handleOrderCancelled);
+    on('order:status-updated', handleOrderStatusUpdated);
+
+    // Cleanup listeners on unmount
+    return () => {
+      console.log('🔌 Cleaning up kitchen socket listeners');
+      off('order:created', handleOrderCreated);
+      off('order:cancelled', handleOrderCancelled);
+      off('order:status-updated', handleOrderStatusUpdated);
+    };
+  }, [socket, isConnected, on, off, toast, getOrderStatusName]);
+
   // Update time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -106,13 +204,20 @@ export function KitchenView({}: KitchenViewProps) {
     return () => clearInterval(timer);
   }, []);
 
-  // Auto-refresh orders every 30 seconds for kitchen
+  // Auto-refresh orders every 30 seconds (fallback if socket disconnected)
   useEffect(() => {
+    // Only use polling as fallback when socket is not connected
+    if (isConnected) {
+      console.log('✅ Socket connected - disabling polling fallback');
+      return;
+    }
+
+    console.log('⚠️ Socket disconnected - using polling fallback');
     const refreshTimer = setInterval(() => {
       fetchOrders(false);
     }, 30000);
     return () => clearInterval(refreshTimer);
-  }, []);
+  }, [isConnected]);
 
   const handleRefresh = () => {
     fetchOrders(false);
@@ -279,15 +384,31 @@ export function KitchenView({}: KitchenViewProps) {
             </p>
           </div>
         </div>
-        <Button 
-          onClick={handleRefresh} 
-          variant="outline" 
-          size="sm"
-          disabled={isRefreshing}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Actualizar
-        </Button>
+        
+        {/* Connection Status Indicator */}
+        <div className="flex items-center gap-2">
+          {isConnected ? (
+            <div className="connection-status-badge connected">
+              <Wifi className="connection-status-icon" />
+              Tiempo Real
+            </div>
+          ) : (
+            <div className="connection-status-badge disconnected">
+              <WifiOff className="connection-status-icon" />
+              Polling
+            </div>
+          )}
+          
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline" 
+            size="sm"
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       {/* Kitchen Stats */}
