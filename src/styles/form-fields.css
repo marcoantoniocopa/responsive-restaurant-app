@@ -1,0 +1,157 @@
+/* ==============================================
+   FORM FIELDS - Shared styles for all form inputs
+   ============================================== */
+
+/* Base form field container */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.form-fields-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ==============================================
+   INPUT BASE STYLES
+   ============================================== */
+
+.input-field,
+.textarea-field {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background-color: #ffffff;
+  color: #1f2937;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Dark mode */
+.dark .input-field,
+.dark .textarea-field {
+  border-color: #4b5563;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Focus state */
+.input-field:focus,
+.textarea-field:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.dark .input-field:focus,
+.dark .textarea-field:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+/* Placeholder */
+.input-field::placeholder,
+.textarea-field::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+/* Disabled state */
+.input-field:disabled,
+.textarea-field:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.dark .input-field:disabled,
+.dark .textarea-field:disabled {
+  background-color: #374151;
+}
+
+/* ==============================================
+   TEXTAREA SPECIFIC
+   ============================================== */
+
+.textarea-field {
+  min-height: 50px;
+  resize: none;
+  line-height: 1.4;
+}
+
+.textarea-field--large {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* ==============================================
+   OPTIONAL FIELD VARIANT
+   ============================================== */
+
+.input-field--optional,
+.textarea-field--optional {
+  background-color: #f9fafb;
+}
+
+.dark .input-field--optional,
+.dark .textarea-field--optional {
+  background-color: #1f2937;
+}
+
+/* ==============================================
+   FORM LABEL
+   ============================================== */
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.form-label--required::after {
+  content: ' *';
+  color: #ef4444;
+}
+
+/* ==============================================
+   HELPER TEXT
+   ============================================== */
+
+.form-helper {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.form-helper--error {
+  color: #ef4444;
+}
+
+.form-helper--right {
+  text-align: right;
+}
+
+/* ==============================================
+   CHARACTER COUNT
+   ============================================== */
+
+.char-count {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: right;
+  margin-top: 0.25rem;
+}
+
+.char-count--warning {
+  color: #f59e0b;
+}
+
+.char-count--error {
+  color: #ef4444;
+}
+

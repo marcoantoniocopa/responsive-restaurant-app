@@ -89,9 +89,9 @@ export function extractUserFromToken(token: string): KeycloakUser | null {
 
   return {
     id: payload.sub,
-    username: payload.preferred_username || '',
+    username: payload.preferred_username || payload.given_name || payload.name || payload.sub || '',
     email: payload.email,
-    name: payload.name,
+    name: payload.name || `${payload.given_name || ''} ${payload.family_name || ''}`.trim() || payload.preferred_username,
     givenName: payload.given_name,
     familyName: payload.family_name,
     emailVerified: payload.email_verified,

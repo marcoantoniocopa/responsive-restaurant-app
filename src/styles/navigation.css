@@ -1,0 +1,238 @@
+/* Navigation Component Styles */
+
+/* Main Navigation Bar */
+.nav-bar {
+  background-color: hsl(var(--card));
+  border-bottom: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.nav-container {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.nav-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 4rem;
+}
+
+/* Logo */
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-logo-text {
+  color: hsl(var(--primary));
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+/* Desktop Navigation Tabs */
+.nav-tabs {
+  display: none;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+@media (min-width: 768px) {
+  .nav-tabs {
+    display: flex;
+  }
+}
+
+/* Nav Link Base */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+}
+
+/* Nav Link - Inactive State */
+.nav-link-inactive {
+  color: #000000;
+}
+
+.nav-link-inactive:hover {
+  background-color: #f3f4f6;
+}
+
+/* Dark mode - Inactive */
+:root.dark .nav-link-inactive {
+  color: #ffffff;
+}
+
+:root.dark .nav-link-inactive:hover {
+  background-color: #1f2937;
+}
+
+/* Nav Link - Active State */
+.nav-link-active {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+:root.dark .nav-link-active {
+  background-color: #111827;
+  color: #ffffff;
+}
+
+/* Nav Link Icon */
+.nav-link-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Right Side Actions */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* User Avatar */
+.nav-avatar-btn {
+  display: none;
+  position: relative;
+  border-radius: 9999px;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .nav-avatar-btn {
+    display: flex;
+  }
+}
+
+.nav-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.nav-avatar-fallback {
+  background-color: #f97316;
+  color: #ffffff;
+}
+
+/* Mobile Menu */
+.mobile-menu-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Mobile User Info */
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.mobile-user-avatar {
+  width: 3rem;
+  height: 3rem;
+}
+
+.mobile-user-avatar-fallback {
+  background-color: #f97316;
+  color: #ffffff;
+  font-size: 1.125rem;
+}
+
+.mobile-user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.mobile-user-roles {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  text-transform: capitalize;
+}
+
+/* Mobile Navigation Links */
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Mobile Nav Link */
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+}
+
+.mobile-nav-link-inactive {
+  color: #000000;
+}
+
+.mobile-nav-link-inactive:hover {
+  background-color: #f3f4f6;
+}
+
+:root.dark .mobile-nav-link-inactive {
+  color: #ffffff;
+}
+
+:root.dark .mobile-nav-link-inactive:hover {
+  background-color: #1f2937;
+}
+
+.mobile-nav-link-active {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+:root.dark .mobile-nav-link-active {
+  background-color: #111827;
+  color: #ffffff;
+}
+
+.mobile-nav-link-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Mobile Logout Button */
+.mobile-logout-btn {
+  margin-top: 1rem;
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.75rem;
+}
+
+.mobile-logout-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+

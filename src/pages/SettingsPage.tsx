@@ -162,6 +162,7 @@ export function SettingsPage() {
       await apiClient.updateSettings(settings);
       await refreshSettings(); // Refresh global settings
       toast({
+        variant: 'success',
         title: 'Success',
         description: 'Settings updated successfully. Completos will be regenerated.',
       });

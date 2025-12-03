@@ -8,6 +8,7 @@ import { CocinaPage } from "./pages/CocinaPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { ContablePage } from "./pages/ContablePage";
 import { Order } from "./components/OrderCard";
 import { toast } from "sonner@2.0.3";
 import { Toaster } from "./components/ui/toaster";
@@ -141,24 +142,11 @@ function AppContent() {
           />
           <Route
             path="/caja"
-            element={
-              <CajaPage
-                orders={orders}
-                onOrderStatusChange={handleOrderStatusChange}
-                onOrderSubmit={handleNewOrder}
-                onRefresh={handleRefresh}
-              />
-            }
+            element={<CajaPage />}
           />
           <Route
             path="/cocina"
-            element={
-              <CocinaPage
-                orders={orders}
-                onOrderStatusChange={handleOrderStatusChange}
-                onRefresh={handleRefresh}
-              />
-            }
+            element={<CocinaPage />}
           />
           <Route
             path="/products"
@@ -171,6 +159,10 @@ function AppContent() {
           <Route
             path="/settings"
             element={<SettingsPage />}
+          />
+          <Route
+            path="/contable"
+            element={<ContablePage />}
           />
           <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
         </Routes>

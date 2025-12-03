@@ -112,6 +112,7 @@ export function ProductsPage() {
     setSelectedProduct(null);
     fetchProducts();
     toast({
+      variant: 'success',
       title: 'Success',
       description: selectedProduct ? 'Product updated successfully' : 'Product created successfully',
     });
@@ -128,6 +129,7 @@ export function ProductsPage() {
     try {
       await apiClient.deleteProduct(productToDelete, 'Deleted by admin');
       toast({
+        variant: 'success',
         title: 'Success',
         description: 'Product deleted successfully',
       });
@@ -148,6 +150,7 @@ export function ProductsPage() {
     try {
       await apiClient.toggleProductAvailability(productId);
       toast({
+        variant: 'success',
         title: 'Success',
         description: 'Product availability updated',
       });

@@ -185,6 +185,11 @@ class ApiClient {
     return response.data.data;
   }
 
+  async getContableStats(params?: { dateFrom?: string; dateTo?: string; paymentMethod?: number; orderType?: number }) {
+    const response = await this.client.get('/orders/stats/contable', { params });
+    return response.data.data;
+  }
+
   // Menus endpoints
   async getActiveMenus() {
     const response = await this.client.get('/menus/active');

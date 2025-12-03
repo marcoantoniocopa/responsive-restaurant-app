@@ -31,13 +31,13 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   const [currencySymbol, setCurrencySymbol] = useState<string>('$');
   const [numberOfTables, setNumberOfTables] = useState<number>(6);
   const [loading, setLoading] = useState(false);
-  const [hasFetched, setHasFetched] = useState(false);
+  const [fetchAttempted, setFetchAttempted] = useState(false);
 
-  const fetchSettings = async () => {
-    if (hasFetched) return; // Prevent duplicate fetches
+  const fetchSettings = async (force = false) => {
+    if (fetchAttempted && !force) return; // Prevent retry loops on error
     
     setLoading(true);
-    setHasFetched(true);
+    setFetchAttempted(true);
     
     try {
       const settings = await apiClient.getSettings();
@@ -45,26 +45,25 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       setNumberOfTables(settings.numberOfTables || 6);
     } catch (error) {
       console.error('Failed to load settings:', error);
-      // Use defaults if settings can't be loaded
+      // Use defaults if settings can't be loaded - don't retry automatically
       setCurrencySymbol('$');
       setNumberOfTables(6);
-      setHasFetched(false); // Allow retry on error
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch once on mount (not on login page)
   useEffect(() => {
-    // Only fetch if we're not on the login page
-    const isLoginPage = window.location.pathname === '/login';
-    if (!isLoginPage && !hasFetched) {
+    const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/';
+    if (!isLoginPage && !fetchAttempted) {
       fetchSettings();
     }
-  }, [hasFetched]);
+  }, []); // Empty dependency - run only once on mount
 
   const refreshSettings = async () => {
-    setLoading(true);
-    await fetchSettings();
+    setFetchAttempted(false);
+    await fetchSettings(true);
   };
 
   return (

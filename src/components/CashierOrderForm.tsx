@@ -11,6 +11,9 @@ import { Order } from "./OrderCard";
 import { apiClient } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
 import { Currency } from "./Currency";
+import { useSettings } from "../contexts/SettingsContext";
+import "../styles/order-form.css";
+import "../styles/form-fields.css";
 
 interface Product {
   _id: string;
@@ -39,13 +42,16 @@ interface CashierOrderFormProps {
 export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormProps) {
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [customerName, setCustomerName] = useState("");
+  const [tableNumber, setTableNumber] = useState<number | null>(null);
   const [orderType, setOrderType] = useState<"takeaway" | "dinein">("dinein");
+  const [observation, setObservation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { numberOfTables } = useSettings();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,9 +77,16 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
         
         setProducts(availableProducts);
         setCategories(sortedCategories);
+        
+        // Default to Completo category if exists
+        const completoCategory = sortedCategories.find(c => c.name === "Completo");
+        if (completoCategory) {
+          setSelectedCategory(completoCategory._id);
+        }
       } catch (error) {
         console.error("Failed to fetch data:", error);
         toast({
+          variant: "destructive",
           title: "Error",
           description: "Failed to load products. Please try again.",
           variant: "destructive",
@@ -85,6 +98,13 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
 
     fetchData();
   }, [toast]);
+
+  // Reset table number when switching to takeaway
+  useEffect(() => {
+    if (orderType === "takeaway") {
+      setTableNumber(null);
+    }
+  }, [orderType]);
 
   const filteredProducts = selectedCategory === "all"
     ? products
@@ -124,8 +144,10 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
 
   const isFormValid = () => {
     const hasItems = Object.keys(cart).length > 0;
-    const hasRequiredName = orderType === "dinein" || (orderType === "takeaway" && customerName.trim());
-    return hasItems && hasRequiredName;
+    const hasRequiredInfo = orderType === "dinein" 
+      ? tableNumber !== null 
+      : customerName.trim() !== "";
+    return hasItems && hasRequiredInfo;
   };
 
   const handleSubmit = async () => {
@@ -166,30 +188,36 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
         };
       });
 
-      const finalCustomerName = orderType === "dinein" 
-        ? `Mesa ${Date.now().toString().slice(-3)}` 
-        : customerName.trim();
-
       // Create order via API
       const orderData = {
-        customerName: finalCustomerName,
+        customerName: orderType === "takeaway" ? customerName.trim() : `Mesa ${tableNumber}`,
+        tableNumber: orderType === "dinein" ? tableNumber?.toString() : undefined,
         items: orderItems,
         paymentMethod: 1,  // 1 = Efectivo (default for cashier orders)
         orderType: orderType === "takeaway" ? 1 : 2,  // 1 = Llevar, 2 = En Local
         isReservation: false,
+        observation: observation.trim() || undefined,
       };
 
       await apiClient.createOrder(orderData);
       
       toast({
+        variant: "success",
         title: "Pedido creado",
         description: "El pedido ha sido creado exitosamente.",
       });
+      
+      // Reset form
+      setCart({});
+      setCustomerName("");
+      setTableNumber(null);
+      setObservation("");
       
       onClose();
     } catch (error: any) {
       console.error("Failed to create order:", error);
       toast({
+        variant: "destructive",
         title: "Error",
         description: error.response?.data?.message || "Failed to create order. Please try again.",
         variant: "destructive",
@@ -200,28 +228,28 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-background border-b p-4 flex items-center justify-between">
-          <h2>Nuevo Pedido</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <div className="modal-header">
+          <h2 className="modal-title">Nuevo Pedido</h2>
+          <Button variant="ghost" size="sm" onClick={onClose} className="modal-close-btn">
+            <X className="icon-sm" />
           </Button>
         </div>
 
-        <div className="p-4 space-y-6">
+        <div className="modal-content">
           {/* Order Type Selection */}
           <Card>
             <CardHeader>
               <h3>Tipo de Pedido</h3>
             </CardHeader>
             <CardContent>
-              <RadioGroup value={orderType} onValueChange={(value) => setOrderType(value as "takeaway" | "dinein")}>
-                <div className="flex items-center space-x-2">
+              <RadioGroup value={orderType} onValueChange={(value) => setOrderType(value as "takeaway" | "dinein")} className="radio-group">
+                <div className="radio-option">
                   <RadioGroupItem value="dinein" id="dinein" />
                   <Label htmlFor="dinein">Comer en el restaurante</Label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="radio-option">
                   <RadioGroupItem value="takeaway" id="takeaway" />
                   <Label htmlFor="takeaway">Para llevar</Label>
                 </div>
@@ -235,15 +263,27 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
               <CardHeader>
                 <h3>Información del Cliente</h3>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Label htmlFor="customerName">Nombre del Cliente *</Label>
+              <CardContent className="form-fields-group">
+                <div className="form-field">
+                  <Label htmlFor="customerName" className="form-label form-label--required">Nombre del Cliente</Label>
                   <Input
                     id="customerName"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="Ingresa el nombre del cliente"
-                    className="w-full"
+                    className="input-field"
+                  />
+                </div>
+                <div className="form-field">
+                  <Label htmlFor="observation" className="form-label">Observaciones (opcional)</Label>
+                  <textarea
+                    id="observation"
+                    value={observation}
+                    onChange={(e) => setObservation(e.target.value)}
+                    placeholder="Ej: Sin cebolla, extra picante..."
+                    className="textarea-field textarea-field--optional"
+                    rows={2}
+                    maxLength={250}
                   />
                 </div>
               </CardContent>
@@ -252,21 +292,50 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
 
           {orderType === "dinein" && (
             <Card>
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground">
-                  Se asignará automáticamente un número de mesa al pedido
-                </p>
+              <CardHeader>
+                <h3>Seleccionar Mesa</h3>
+              </CardHeader>
+              <CardContent className="form-fields-group">
+                <div className="table-grid">
+                  {Array.from({ length: numberOfTables }, (_, i) => i + 1).map((num) => (
+                    <Button
+                      key={num}
+                      variant={tableNumber === num ? "default" : "outline"}
+                      onClick={() => setTableNumber(num)}
+                      className="table-btn"
+                    >
+                      {num}
+                    </Button>
+                  ))}
+                </div>
+                {tableNumber && (
+                  <p className="table-selected-info">
+                    Mesa seleccionada: <span className="table-selected-number">{tableNumber}</span>
+                  </p>
+                )}
+                <div className="form-field">
+                  <Label htmlFor="observation-dinein" className="form-label">Observaciones (opcional)</Label>
+                  <textarea
+                    id="observation-dinein"
+                    value={observation}
+                    onChange={(e) => setObservation(e.target.value)}
+                    placeholder="Ej: Sin cebolla, extra picante..."
+                    className="textarea-field textarea-field--optional"
+                    rows={2}
+                    maxLength={250}
+                  />
+                </div>
               </CardContent>
             </Card>
           )}
 
           {/* Menu Items */}
-          <div className="space-y-4">
-            <h3>Seleccionar Menús</h3>
+          <div>
+            <h3 className="order-section-title">Seleccionar Menús</h3>
             
             {isLoading ? (
-              <div className="flex justify-center items-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <div className="loading-state">
+                <Loader2 className="loading-spinner" />
               </div>
             ) : (
               <>
@@ -275,78 +344,78 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
                   defaultValue="all"
                   value={selectedCategory}
                   onValueChange={setSelectedCategory}
-                  className="w-full"
+                  className="category-tabs"
                 >
-                  <TabsList className="w-full justify-start flex-wrap h-auto">
+                  <TabsList className="category-tabs-list">
                     {categories.map((category) => (
                       <TabsTrigger
                         key={category._id}
                         value={category._id}
-                        className="flex-1 min-w-fit"
+                        className="category-tab"
                       >
                         {category.name}
                       </TabsTrigger>
                     ))}
-                    <TabsTrigger value="all" className="flex-1 min-w-fit">
+                    <TabsTrigger value="all" className="category-tab">
                       Todos
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
 
                 {/* Products List */}
-                <div className="space-y-3 mt-4">
+                <div className="products-list">
                   {filteredProducts.length === 0 ? (
                     <Card>
-                      <CardContent className="p-8 text-center text-muted-foreground">
+                      <CardContent className="empty-state">
                         No hay productos disponibles en esta categoría.
                       </CardContent>
                     </Card>
                   ) : (
                     filteredProducts.map((product) => (
                       <Card key={product._id}>
-                        <CardContent className="p-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <h4 className="text-lg font-semibold">{product.name}</h4>
-                                <Badge variant="secondary" className="text-xs">
+                        <CardContent className="product-card">
+                          <div className="product-card-content">
+                            <div className="product-info">
+                              <div className="product-header">
+                                <h4 className="product-name">{product.name}</h4>
+                                <Badge variant="secondary" className="product-price-badge">
                                   <Currency amount={product.sellPrice} />
                                 </Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground">
+                              <p className="product-description">
                                 {product.description || "Producto delicioso"}
                               </p>
                             </div>
                             
-                            <div className="flex items-center gap-3">
+                            <div className="product-actions">
                               {cart[product._id] ? (
-                                <div className="flex items-center gap-2">
+                                <div className="quantity-controls">
                                   <Button
                                     size="sm"
                                     variant="outline"
                                     onClick={() => removeFromCart(product._id)}
-                                    className="h-8 w-8 p-0"
+                                    className="quantity-btn"
                                   >
-                                    <Minus className="h-4 w-4" />
+                                    <Minus className="quantity-btn-icon" />
                                   </Button>
-                                  <span className="w-8 text-center font-medium">
+                                  <span className="quantity-value">
                                     {cart[product._id]}
                                   </span>
                                   <Button
                                     size="sm"
                                     onClick={() => addToCart(product._id)}
-                                    className="h-8 w-8 p-0"
+                                    className="quantity-btn"
                                   >
-                                    <Plus className="h-4 w-4" />
+                                    <Plus className="quantity-btn-icon" />
                                   </Button>
                                 </div>
                               ) : (
                                 <Button
                                   size="sm"
                                   onClick={() => addToCart(product._id)}
-                                  className="flex items-center gap-2"
+                                  className="add-btn"
                                 >
-                                  <Plus className="h-4 w-4" />
+                                  <Plus className="add-btn-icon" />
                                   Agregar
                                 </Button>
                               )}
@@ -364,33 +433,33 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
 
         {/* Cart Summary & Submit */}
         {Object.keys(cart).length > 0 && (
-          <div className="sticky bottom-0 bg-background border-t p-4">
+          <div className="modal-footer">
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <ShoppingCart className="h-5 w-5" />
+              <CardContent className="cart-summary-content">
+                <div className="cart-info">
+                  <div className="cart-items-count">
+                    <ShoppingCart className="cart-icon" />
                     <span>
                       {getCartItemCount()} {getCartItemCount() === 1 ? 'item' : 'items'}
                     </span>
                   </div>
-                  <span>
+                  <span className="cart-total">
                     Total: <Currency amount={getCartTotal()} />
                   </span>
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="form-buttons">
                   <Button
                     variant="outline"
                     onClick={onClose}
-                    className="flex-1"
+                    className="form-btn"
                   >
                     Cancelar
                   </Button>
                   <Button
                     onClick={handleSubmit}
                     disabled={!isFormValid() || isSubmitting}
-                    className="flex-1"
+                    className="form-btn"
                   >
                     {isSubmitting ? "Procesando..." : "Crear Pedido"}
                   </Button>

@@ -1,0 +1,106 @@
+/* Toast Notification Styles */
+
+/* Toast Viewport - Always bottom right */
+.toast-viewport {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  max-height: 100vh;
+  width: 100%;
+  max-width: 320px;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 0.5rem;
+}
+
+/* Base Toast */
+.toast {
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  border-width: 2px;
+  padding: 0.75rem 1rem;
+  padding-right: 2rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+}
+
+/* Success Toast - Green border */
+.toast-success {
+  border-color: #16a34a;
+  background-color: hsl(var(--background));
+}
+
+.toast-success .toast-title {
+  color: #16a34a;
+}
+
+/* Error/Destructive Toast - Red border */
+.toast-error {
+  border-color: #dc2626;
+  background-color: hsl(var(--background));
+}
+
+.toast-error .toast-title {
+  color: #dc2626;
+}
+
+/* Default Toast - Subtle border */
+.toast-default {
+  border-color: hsl(var(--border));
+}
+
+/* Toast Title */
+.toast-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+/* Toast Description */
+.toast-description {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* Toast Close Button */
+.toast-close {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  border-radius: 0.25rem;
+  padding: 0.25rem;
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: currentColor;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+.toast-close svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Toast Content Grid */
+.toast-content {
+  display: grid;
+  gap: 0.125rem;
+}
+

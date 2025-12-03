@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button } from "./ui/button";
-import { ShoppingBag, Users, ChefHat, LogOut, Menu, X, Package, FolderTree, Settings } from "lucide-react";
+import { ShoppingBag, Users, ChefHat, LogOut, Menu, Package, FolderTree, Settings, BarChart3 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet";
+import "../styles/navigation.css";
 
 export function Navigation() {
   const { user, logout, hasRole } = useAuth();
@@ -26,13 +27,17 @@ export function Navigation() {
 
   const getInitials = (name?: string) => {
     if (!name) return 'U';
-    return name
-      .split(' ')
+    // Handle both full names and usernames
+    const parts = name.includes(' ') ? name.split(' ') : [name];
+    return parts
       .map(word => word[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
   };
+
+  // Prefer firstName (givenName) for display
+  const displayName = user?.givenName || user?.username || user?.name || user?.id || 'Usuario';
 
   const handleLogout = async () => {
     await logout();
@@ -71,6 +76,12 @@ export function Navigation() {
       show: hasRole('admin'),
     },
     {
+      path: '/contable',
+      label: 'Contable',
+      icon: BarChart3,
+      show: hasRole('admin'),
+    },
+    {
       path: '/settings',
       label: 'Settings',
       icon: Settings,
@@ -79,30 +90,26 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="bg-card border-b border-border shadow-sm">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <nav className="nav-bar">
+      <div className="nav-container">
+        <div className="nav-content">
           {/* Logo */}
-          <div className="flex items-center gap-4">
-            <h1 className="text-primary font-bold text-xl">RestaurantOS</h1>
+          <div className="nav-logo">
+            <h1 className="nav-logo-text">RestaurantOS</h1>
           </div>
 
           {/* Desktop Navigation Tabs */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="nav-tabs">
             {navItems.map((item) => 
               item.show ? (
                 <NavLink
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-black text-white dark:bg-gray-900 dark:text-white'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`
+                    `nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}`
                   }
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className="nav-link-icon" />
                   <span>{item.label}</span>
                 </NavLink>
               ) : null
@@ -110,46 +117,23 @@ export function Navigation() {
           </div>
 
           {/* Right side - User Menu & Hamburger */}
-          <div className="flex items-center gap-2">
-            {/* Desktop Logout Button */}
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={handleLogout}
-              className="hidden sm:flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden lg:inline">Logout</span>
-            </Button>
-            
+          <div className="nav-actions">
             {/* User Avatar Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="hidden sm:flex relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-orange-500 text-white">
-                      {getInitials(user?.name || user?.username)}
+                <Button variant="ghost" className="nav-avatar-btn">
+                  <Avatar className="nav-avatar">
+                    <AvatarFallback className="nav-avatar-fallback">
+                      {getInitials(displayName)}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {user?.name || user?.username}
-                    </p>
-                    {user?.email && (
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                      </p>
-                    )}
-                    {user?.roles && user.roles.length > 0 && (
-                      <p className="text-xs leading-none text-muted-foreground capitalize">
-                        {user.roles.join(', ')}
-                      </p>
-                    )}
-                  </div>
+                  <p className="text-sm font-medium leading-none">
+                    {displayName}
+                  </p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
@@ -172,28 +156,23 @@ export function Navigation() {
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
                 
-                <div className="flex flex-col gap-4 mt-6">
+                <div className="mobile-menu-content">
                   {/* User Info */}
-                  <div className="flex items-center gap-3 pb-4 border-b">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-orange-500 text-white text-lg">
-                        {getInitials(user?.name || user?.username)}
+                  <div className="mobile-user-info">
+                    <Avatar className="mobile-user-avatar">
+                      <AvatarFallback className="mobile-user-avatar-fallback">
+                        {getInitials(displayName)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col">
-                      <p className="text-sm font-medium">
-                        {user?.name || user?.username}
+                    <div className="mobile-user-details">
+                      <p className="mobile-user-name">
+                        {displayName}
                       </p>
-                      {user?.roles && user.roles.length > 0 && (
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {user.roles.join(', ')}
-                        </p>
-                      )}
                     </div>
                   </div>
 
                   {/* Navigation Links */}
-                  <div className="flex flex-col gap-2">
+                  <div className="mobile-nav-links">
                     {navItems.map((item) => 
                       item.show ? (
                         <NavLink
@@ -201,14 +180,10 @@ export function Navigation() {
                           to={item.path}
                           onClick={() => setMobileMenuOpen(false)}
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                              isActive
-                                ? 'bg-black text-white dark:bg-gray-900 dark:text-white'
-                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                            }`
+                            `mobile-nav-link ${isActive ? 'mobile-nav-link-active' : 'mobile-nav-link-inactive'}`
                           }
                         >
-                          <item.icon className="h-5 w-5" />
+                          <item.icon className="mobile-nav-link-icon" />
                           <span>{item.label}</span>
                         </NavLink>
                       ) : null
@@ -218,13 +193,13 @@ export function Navigation() {
                   {/* Logout Button */}
                   <Button
                     variant="outline"
-                    className="mt-4 w-full justify-start gap-3"
+                    className="mobile-logout-btn"
                     onClick={() => {
                       handleLogout();
                       setMobileMenuOpen(false);
                     }}
                   >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="mobile-logout-icon" />
                     <span>Cerrar Sesión</span>
                   </Button>
                 </div>

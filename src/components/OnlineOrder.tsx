@@ -10,6 +10,8 @@ import { Order } from "./OrderCard";
 import { apiClient } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
 import { Currency } from "./Currency";
+import "../styles/order-form.css";
+import "../styles/form-fields.css";
 
 interface Product {
   _id: string;
@@ -37,6 +39,7 @@ interface OnlineOrderProps {
 export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [customerName, setCustomerName] = useState("");
+  const [observation, setObservation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -68,12 +71,18 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
         
         setProducts(availableProducts);
         setCategories(sortedCategories);
+        
+        // Default to Completo category if exists
+        const completoCategory = sortedCategories.find(c => c.name === "Completo");
+        if (completoCategory) {
+          setSelectedCategory(completoCategory._id);
+        }
       } catch (error) {
         console.error("Failed to fetch data:", error);
         toast({
+          variant: "destructive",
           title: "Error",
           description: "Failed to load products. Please try again.",
-          variant: "destructive",
         });
       } finally {
         setIsLoading(false);
@@ -165,11 +174,13 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
         orderType: 3,      // 3 = Llevar Web (online takeaway)
         isReservation: true,
         reservationTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),  // 30 minutes from now
+        observation: observation.trim() || undefined,
       };
 
       await apiClient.createCustomerOrder(orderData);
       
       toast({
+        variant: "success",
         title: "Pedido confirmado",
         description: "Tu pedido ha sido recibido exitosamente.",
       });
@@ -177,12 +188,13 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
       // Reset form
       setCart({});
       setCustomerName("");
+      setObservation("");
     } catch (error: any) {
       console.error("Failed to create order:", error);
       toast({
+        variant: "destructive",
         title: "Error",
         description: error.response?.data?.message || "Failed to create order. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -190,10 +202,10 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="mb-2">Realizar Pedido Online</h2>
-        <p className="text-muted-foreground">
+    <div className="order-container">
+      <div className="order-header">
+        <h2>Realizar Pedido Online</h2>
+        <p className="order-header-subtitle">
           Selecciona tus menús favoritos y realiza tu pedido
         </p>
       </div>
@@ -203,27 +215,39 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
         <CardHeader>
           <h3>Información del Cliente</h3>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="customerName">Nombre del Cliente</Label>
+        <CardContent className="form-fields-group">
+          <div className="form-field">
+            <Label htmlFor="customerName" className="form-label form-label--required">Nombre del Cliente</Label>
             <Input
               id="customerName"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="Ingresa tu nombre"
-              className="w-full"
+              className="input-field"
+            />
+          </div>
+          <div className="form-field">
+            <Label htmlFor="observation" className="form-label">Observaciones (opcional)</Label>
+            <textarea
+              id="observation"
+              value={observation}
+              onChange={(e) => setObservation(e.target.value)}
+              placeholder="Ej: Sin cebolla, extra picante..."
+              className="textarea-field textarea-field--optional"
+              rows={2}
+              maxLength={250}
             />
           </div>
         </CardContent>
       </Card>
 
       {/* Menu Items */}
-      <div className="space-y-4">
-        <h3>Nuestros Menús</h3>
+      <div>
+        <h3 className="order-section-title">Menú del día</h3>
         
         {isLoading ? (
-          <div className="flex justify-center items-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="loading-state">
+            <Loader2 className="loading-spinner" />
           </div>
         ) : (
           <>
@@ -232,78 +256,78 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
               defaultValue="all"
               value={selectedCategory}
               onValueChange={setSelectedCategory}
-              className="w-full"
+              className="category-tabs"
             >
-              <TabsList className="w-full justify-start flex-wrap h-auto">
+              <TabsList className="category-tabs-list">
                 {categories.map((category) => (
                   <TabsTrigger
                     key={category._id}
                     value={category._id}
-                    className="flex-1 min-w-fit"
+                    className="category-tab"
                   >
                     {category.name}
                   </TabsTrigger>
                 ))}
-                <TabsTrigger value="all" className="flex-1 min-w-fit">
+                <TabsTrigger value="all" className="category-tab">
                   Todos
                 </TabsTrigger>
               </TabsList>
             </Tabs>
 
             {/* Products List */}
-            <div className="space-y-3 mt-4">
+            <div className="products-list">
               {filteredProducts.length === 0 ? (
                 <Card>
-                  <CardContent className="p-8 text-center text-muted-foreground">
+                  <CardContent className="empty-state">
                     No hay productos disponibles en esta categoría.
                   </CardContent>
                 </Card>
               ) : (
                 filteredProducts.map((product) => (
                   <Card key={product._id}>
-                    <CardContent className="p-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <h4 className="text-lg font-semibold">{product.name}</h4>
-                            <Badge variant="secondary" className="text-xs">
+                    <CardContent className="product-card">
+                      <div className="product-card-content">
+                        <div className="product-info">
+                          <div className="product-header">
+                            <h4 className="product-name">{product.name}</h4>
+                            <Badge variant="secondary" className="product-price-badge">
                               <Currency amount={product.sellPrice} />
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="product-description">
                             {product.description || "Producto delicioso"}
                           </p>
                         </div>
                         
-                        <div className="flex items-center gap-3">
+                        <div className="product-actions">
                           {cart[product._id] ? (
-                            <div className="flex items-center gap-2">
+                            <div className="quantity-controls">
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => removeFromCart(product._id)}
-                                className="h-8 w-8 p-0"
+                                className="quantity-btn"
                               >
-                                <Minus className="h-4 w-4" />
+                                <Minus className="quantity-btn-icon" />
                               </Button>
-                              <span className="w-8 text-center font-medium">
+                              <span className="quantity-value">
                                 {cart[product._id]}
                               </span>
                               <Button
                                 size="sm"
                                 onClick={() => addToCart(product._id)}
-                                className="h-8 w-8 p-0"
+                                className="quantity-btn"
                               >
-                                <Plus className="h-4 w-4" />
+                                <Plus className="quantity-btn-icon" />
                               </Button>
                             </div>
                           ) : (
                             <Button
                               size="sm"
                               onClick={() => addToCart(product._id)}
-                              className="flex items-center gap-2"
+                              className="add-btn"
                             >
-                              <Plus className="h-4 w-4" />
+                              <Plus className="add-btn-icon" />
                               Agregar
                             </Button>
                           )}
@@ -320,16 +344,16 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
 
       {/* Cart Summary & Submit */}
       {Object.keys(cart).length > 0 && (
-        <Card className="sticky bottom-4">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
+        <Card className="cart-summary">
+          <CardContent className="cart-summary-content">
+            <div className="cart-info">
+              <div className="cart-items-count">
+                <ShoppingCart className="cart-icon" />
                 <span>
                   {getCartItemCount()} {getCartItemCount() === 1 ? 'item' : 'items'}
                 </span>
               </div>
-              <span className="text-lg">
+              <span className="cart-total">
                 Total: <Currency amount={getCartTotal()} />
               </span>
             </div>

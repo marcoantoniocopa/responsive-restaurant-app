@@ -84,6 +84,7 @@ export function CategoriesPage() {
     setSelectedCategory(null);
     fetchCategories();
     toast({
+      variant: 'success',
       title: 'Success',
       description: selectedCategory ? 'Category updated successfully' : 'Category created successfully',
     });
@@ -100,6 +101,7 @@ export function CategoriesPage() {
     try {
       await apiClient.deleteCategory(categoryToDelete, 'Deleted by admin');
       toast({
+        variant: 'success',
         title: 'Success',
         description: 'Category deleted successfully',
       });

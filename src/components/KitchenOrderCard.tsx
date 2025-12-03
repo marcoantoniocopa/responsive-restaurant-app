@@ -18,15 +18,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Clock, CheckCircle, XCircle, ChevronDown } from "lucide-react";
+import { Clock, CheckCircle, XCircle, ChevronDown, Utensils } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
-import { Currency } from "./Currency";
 import { useConfig } from "../contexts/ConfigContext";
 import { ORDER_STATUS, getAvailableTransitions } from "../constants/orderStatus";
+import "../styles/kitchen.css";
 
 const MAX_VISIBLE_ITEMS = 5;
 
-export interface Order {
+export interface KitchenOrder {
   id: string;
   orderNumber?: string;
   customerName: string;
@@ -34,37 +34,32 @@ export interface Order {
   items: Array<{
     name: string;
     quantity: number;
-    price: number;
     isCompleto?: boolean;
     components?: string[];
   }>;
-  total: number;
-  status: number; // Numeric status ID
+  status: number;
   timestamp: Date;
-  orderType: number; // Numeric order type ID
-  paymentMethod: number; // Numeric payment method ID
+  orderType: number;
 }
 
-interface OrderCardProps {
-  order: Order;
-  onStatusChange?: (orderId: string, newStatus: number) => void;
-  showActions?: boolean;
-  compact?: boolean;
+interface KitchenOrderCardProps {
+  order: KitchenOrder;
+  onStatusChange: (orderId: string, newStatus: number) => void;
   isDetailModalOpen?: boolean;
   onOpenDetailModal?: (orderId: string) => void;
   onCloseDetailModal?: () => void;
+  waitTime?: number; // Minutes since order was placed
 }
 
-export function OrderCard({ 
+export function KitchenOrderCard({ 
   order, 
-  onStatusChange, 
-  showActions = false, 
-  compact = false,
+  onStatusChange,
   isDetailModalOpen = false,
   onOpenDetailModal,
   onCloseDetailModal,
-}: OrderCardProps) {
-  const { getOrderTypeName, getPaymentMethodName } = useConfig();
+  waitTime = 0,
+}: KitchenOrderCardProps) {
+  const { getOrderTypeName } = useConfig();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const formatTime = (date: Date) => {
@@ -82,10 +77,11 @@ export function OrderCard({
   const visibleItems = hasMoreItems ? order.items.slice(0, MAX_VISIBLE_ITEMS) : order.items;
   const hiddenItemsCount = order.items.length - MAX_VISIBLE_ITEMS;
 
+  // Calculate total quantity of items
+  const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0);
+
   const handleCancelConfirm = () => {
-    if (onStatusChange) {
-      onStatusChange(order.id, ORDER_STATUS.CANCELADO);
-    }
+    onStatusChange(order.id, ORDER_STATUS.CANCELADO);
     setShowCancelDialog(false);
   };
 
@@ -95,21 +91,29 @@ export function OrderCard({
     }
   };
 
-  // Render items list (reusable for card and modal)
-  const renderItems = (items: Order['items'], isModal = false) => (
-    <div className="space-y-2">
+  // Get urgency level based on wait time
+  const getUrgencyStyle = () => {
+    if (waitTime > 20) return "kitchen-card-urgent-high";
+    if (waitTime > 15) return "kitchen-card-urgent-medium";
+    if (waitTime > 10) return "kitchen-card-urgent-low";
+    return "kitchen-card-normal";
+  };
+
+  // Render items list for kitchen (no prices, focused on preparation)
+  const renderItems = (items: KitchenOrder['items']) => (
+    <div className="space-y-1">
       {items.map((item, index) => (
-        <div key={index} className="space-y-1">
-          <div className="flex justify-between items-center">
-            <span className={`${compact && !isModal ? 'text-sm' : 'text-base'} ${item.isCompleto ? 'font-semibold' : ''}`}>
-              {item.quantity}x {item.name}
+        <div key={index} className="space-y-0.5">
+          <div className="flex items-start gap-1">
+            <span className="text-[11px] font-semibold min-w-[1.5rem] text-center bg-muted rounded px-1 py-0.5">
+              {item.quantity}x
             </span>
-            <span className={`${compact && !isModal ? 'text-sm' : 'text-base'} text-muted-foreground`}>
-              <Currency amount={item.price} />
+            <span className={`text-[11px] flex-1 leading-tight ${item.isCompleto ? 'font-semibold' : ''}`}>
+              {item.name}
             </span>
           </div>
           {item.isCompleto && item.components && (
-            <div className="text-xs text-muted-foreground ml-4">
+            <div className="text-[9px] text-muted-foreground ml-7 pl-1.5 border-l border-muted">
               {item.components.join(" + ")}
             </div>
           )}
@@ -119,35 +123,44 @@ export function OrderCard({
   );
 
   return (
-    <Card className={`w-full ${compact ? 'mb-2' : 'mb-4'}`}>
-      <CardHeader className={`pb-3 ${compact ? 'py-3' : ''}`}>
+    <Card className={`kitchen-card ${getUrgencyStyle()}`}>
+      <CardHeader className="kitchen-card-header">
+        {/* Order Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className={compact ? "text-lg font-semibold" : "text-xl font-semibold"}>
+          <div className="flex items-center gap-1">
+            <span className="text-base font-bold">
               #{order.orderNumber || order.id}
             </span>
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-[8px] px-1 py-0">
               {getOrderTypeName(order.orderType)}
             </Badge>
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">
-              {formatTime(order.timestamp)}
-            </span>
-          </div>
+          <StatusBadge statusId={order.status} className="text-[8px]" />
         </div>
         
-        <div className="flex items-center justify-between mt-2">
-          <span className={compact ? "text-base font-medium" : "text-lg font-medium"}>
+        {/* Customer & Time Info */}
+        <div className="flex items-center justify-between mt-0.5">
+          <span className="text-[11px] font-medium truncate max-w-[80px]">
             {order.customerName}
           </span>
-          <StatusBadge statusId={order.status} />
+          <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+            <Clock className="h-2.5 w-2.5" />
+            <span>{formatTime(order.timestamp)}</span>
+            {waitTime > 0 && (
+              <Badge 
+                variant={waitTime > 15 ? "destructive" : "outline"} 
+                className="text-[8px] px-1 py-0"
+              >
+                {waitTime}m
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       
-      <CardContent className={compact ? 'py-2' : ''}>
-        <div className="mb-4">
+      <CardContent className="kitchen-card-content">
+        {/* Items List */}
+        <div className="kitchen-items-list">
           {renderItems(visibleItems)}
           
           {/* Show "Ver más" button if there are more items */}
@@ -156,50 +169,42 @@ export function OrderCard({
               variant="ghost"
               size="sm"
               onClick={handleViewMore}
-              className="w-full mt-2 text-muted-foreground hover:text-foreground"
+              className="w-full mt-1 text-[10px] text-muted-foreground hover:text-foreground h-6"
             >
-              <ChevronDown className="h-4 w-4 mr-1" />
-              Ver {hiddenItemsCount} producto{hiddenItemsCount > 1 ? 's' : ''} más
+              <ChevronDown className="h-2.5 w-2.5 mr-0.5" />
+              +{hiddenItemsCount} más
             </Button>
           )}
         </div>
         
-        <div className="flex justify-between items-center border-t pt-3">
-          <span className={compact ? "text-base font-semibold" : "text-lg font-semibold"}>Total:</span>
-          <span className={`${compact ? 'text-base' : 'text-lg'} font-bold text-primary`}>
-            <Currency amount={order.total} large />
-          </span>
-        </div>
-        
-        {showActions && onStatusChange && availableStatuses.length > 0 && (
-          <div className="flex gap-2 mt-4">
+        {/* Action Buttons - Always at bottom */}
+        {availableStatuses.length > 0 && (
+          <div className="kitchen-actions">
             {availableStatuses.includes(ORDER_STATUS.EN_PROGRESO) && (
-              <Button
-                size="sm"
+              <button
                 onClick={() => onStatusChange(order.id, ORDER_STATUS.EN_PROGRESO)}
-                className="flex-1"
+                className="kitchen-btn kitchen-btn-green"
               >
-                Iniciar Preparación
-              </Button>
+                <Utensils />
+                Preparar
+              </button>
             )}
             {availableStatuses.includes(ORDER_STATUS.COMPLETADO) && (
-              <Button
-                size="sm"
+              <button
                 onClick={() => onStatusChange(order.id, ORDER_STATUS.COMPLETADO)}
-                className="flex-1"
+                className="kitchen-btn kitchen-btn-green"
               >
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Marcar Listo
-              </Button>
+                <CheckCircle />
+                Listo
+              </button>
             )}
             {availableStatuses.includes(ORDER_STATUS.CANCELADO) && (
-              <Button
-                size="sm"
-                variant="destructive"
+              <button
                 onClick={() => setShowCancelDialog(true)}
+                className="kitchen-btn kitchen-btn-danger"
               >
-                <XCircle className="h-4 w-4" />
-              </Button>
+                <XCircle />
+              </button>
             )}
           </div>
         )}
@@ -231,75 +236,71 @@ export function OrderCard({
             <DialogHeader>
               <DialogTitle className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span>Pedido #{order.orderNumber || order.id}</span>
-                  <Badge variant="secondary" className="text-xs">
-                    {getOrderTypeName(order.orderType)}
-                  </Badge>
+                  <span className="text-2xl">Pedido #{order.orderNumber || order.id}</span>
                 </div>
               </DialogTitle>
-              <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
-                <span>{order.customerName}</span>
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between pt-2">
+                <Badge variant="secondary">
+                  {getOrderTypeName(order.orderType)}
+                </Badge>
+                <StatusBadge statusId={order.status} />
+              </div>
+              <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
+                <span className="font-medium">{order.customerName}</span>
+                <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   <span>{formatTime(order.timestamp)}</span>
                 </div>
               </div>
-              <div className="pt-1">
-                <StatusBadge statusId={order.status} />
-              </div>
             </DialogHeader>
             
             <div className="py-4">
-              <h4 className="text-sm font-semibold mb-3">Productos ({order.items.length})</h4>
-              {renderItems(order.items, true)}
-            </div>
-            
-            <div className="flex justify-between items-center border-t pt-4">
-              <span className="text-lg font-semibold">Total:</span>
-              <span className="text-lg font-bold text-primary">
-                <Currency amount={order.total} large />
-              </span>
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Utensils className="h-4 w-4" />
+                Productos ({totalQuantity})
+              </h4>
+              <div className="bg-muted/30 rounded-lg p-3">
+                {renderItems(order.items)}
+              </div>
             </div>
 
             {/* Actions in modal */}
-            {showActions && onStatusChange && availableStatuses.length > 0 && (
-              <div className="flex gap-2 mt-4 pt-4 border-t">
+            {availableStatuses.length > 0 && (
+              <div className="flex gap-2 pt-4 border-t">
                 {availableStatuses.includes(ORDER_STATUS.EN_PROGRESO) && (
-                  <Button
-                    size="sm"
+                  <button
                     onClick={() => {
                       onStatusChange(order.id, ORDER_STATUS.EN_PROGRESO);
                       onCloseDetailModal?.();
                     }}
-                    className="flex-1"
+                    className="kitchen-btn kitchen-btn-green"
                   >
-                    Iniciar Preparación
-                  </Button>
+                    <Utensils />
+                    Preparar
+                  </button>
                 )}
                 {availableStatuses.includes(ORDER_STATUS.COMPLETADO) && (
-                  <Button
-                    size="sm"
+                  <button
                     onClick={() => {
                       onStatusChange(order.id, ORDER_STATUS.COMPLETADO);
                       onCloseDetailModal?.();
                     }}
-                    className="flex-1"
+                    className="kitchen-btn kitchen-btn-green"
                   >
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Marcar Listo
-                  </Button>
+                    <CheckCircle />
+                    Listo
+                  </button>
                 )}
                 {availableStatuses.includes(ORDER_STATUS.CANCELADO) && (
-                  <Button
-                    size="sm"
-                    variant="destructive"
+                  <button
                     onClick={() => {
                       onCloseDetailModal?.();
                       setShowCancelDialog(true);
                     }}
+                    className="kitchen-btn kitchen-btn-danger"
                   >
-                    <XCircle className="h-4 w-4" />
-                  </Button>
+                    <XCircle />
+                  </button>
                 )}
               </div>
             )}
@@ -309,3 +310,4 @@ export function OrderCard({
     </Card>
   );
 }
+

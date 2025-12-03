@@ -17,6 +17,26 @@ export interface OrderStatus {
   code: string;
 }
 
+// Static fallback names in case API hasn't loaded yet
+const FALLBACK_PAYMENT_METHODS: Record<number, string> = {
+  1: "Efectivo",
+  2: "QR",
+};
+
+const FALLBACK_ORDER_TYPES: Record<number, string> = {
+  1: "Llevar",
+  2: "En Local",
+  3: "Llevar Web",
+};
+
+const FALLBACK_ORDER_STATUSES: Record<number, { name: string; code: string }> = {
+  1: { name: "Reserva", code: "reserva" },
+  2: { name: "Nuevo", code: "nuevo" },
+  3: { name: "En Progreso", code: "en_progreso" },
+  4: { name: "Completado", code: "completado" },
+  5: { name: "Cancelado", code: "cancelado" },
+};
+
 interface ConfigContextType {
   paymentMethods: PaymentMethod[];
   orderTypes: OrderType[];
@@ -37,12 +57,14 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const [orderStatuses, setOrderStatuses] = useState<OrderStatus[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
+  const [fetchAttempted, setFetchAttempted] = useState(false);
 
-  const fetchConfig = async () => {
-    if (hasFetched) return; // Prevent duplicate fetches
+  const fetchConfig = async (force = false) => {
+    if (hasFetched && !force) return; // Prevent duplicate fetches
+    if (fetchAttempted && !force) return; // Prevent retry loops on error
     
     setIsLoading(true);
-    setHasFetched(true);
+    setFetchAttempted(true);
     
     try {
       const [paymentMethodsData, orderTypesData, orderStatusesData] = await Promise.all([
@@ -54,42 +76,50 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
       setPaymentMethods(paymentMethodsData);
       setOrderTypes(orderTypesData);
       setOrderStatuses(orderStatusesData);
+      setHasFetched(true);
     } catch (error) {
       console.error('Failed to load config:', error);
-      setHasFetched(false); // Allow retry on error
+      // Don't retry automatically - use fallback values
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Don't fetch on mount - let components fetch when needed
+  // Fetch once on mount (not on login page)
   useEffect(() => {
-    // Only fetch if we're not on the login page
-    const isLoginPage = window.location.pathname === '/login';
-    if (!isLoginPage && !hasFetched) {
+    const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/';
+    if (!isLoginPage && !fetchAttempted) {
       fetchConfig();
     }
-  }, [hasFetched]);
+  }, []); // Empty dependency - run only once on mount
 
   const getPaymentMethodName = (id: number): string => {
-    return paymentMethods.find(pm => pm.id === id)?.name || `Payment Method ${id}`;
+    // Try API data first, then fallback to static names
+    const fromApi = paymentMethods.find(pm => pm.id === id)?.name;
+    return fromApi || FALLBACK_PAYMENT_METHODS[id] || `Payment Method ${id}`;
   };
 
   const getOrderTypeName = (id: number): string => {
-    return orderTypes.find(ot => ot.id === id)?.name || `Order Type ${id}`;
+    // Try API data first, then fallback to static names
+    const fromApi = orderTypes.find(ot => ot.id === id)?.name;
+    return fromApi || FALLBACK_ORDER_TYPES[id] || `Order Type ${id}`;
   };
 
   const getOrderStatusName = (id: number): string => {
-    return orderStatuses.find(os => os.id === id)?.name || `Status ${id}`;
+    // Try API data first, then fallback to static names
+    const fromApi = orderStatuses.find(os => os.id === id)?.name;
+    return fromApi || FALLBACK_ORDER_STATUSES[id]?.name || `Status ${id}`;
   };
 
   const getOrderStatusCode = (id: number): string => {
-    return orderStatuses.find(os => os.id === id)?.code || `status_${id}`;
+    // Try API data first, then fallback to static codes
+    const fromApi = orderStatuses.find(os => os.id === id)?.code;
+    return fromApi || FALLBACK_ORDER_STATUSES[id]?.code || `status_${id}`;
   };
 
   const refreshConfig = async () => {
-    setIsLoading(true);
-    await fetchConfig();
+    setFetchAttempted(false);
+    await fetchConfig(true);
   };
 
   return (

@@ -107,6 +107,175 @@ The app automatically routes users to the appropriate view based on their Keyclo
 7. If token expires (401), automatically refreshes using refresh token
 8. If refresh fails, redirects to login page
 
+## 📊 Data Reference: Numeric Values
+
+The frontend uses numeric IDs for orders, statuses, and payment methods to match the backend system.
+
+### Order Status Constants
+
+Located in `src/constants/orderStatus.ts`:
+
+```typescript
+export const ORDER_STATUS = {
+  RESERVA: 1,       // Customer online reservation
+  NUEVO: 2,         // New cashier order
+  EN_PROGRESO: 3,   // Being prepared in kitchen
+  COMPLETADO: 4,    // Completed and delivered
+  CANCELADO: 5,     // Cancelled
+} as const;
+```
+
+**Usage in Components:**
+```typescript
+import { ORDER_STATUS } from '../constants/orderStatus';
+
+// Check order status
+if (order.status === ORDER_STATUS.EN_PROGRESO) {
+  // Show "Mark Complete" button
+}
+
+// Update order status
+await apiClient.updateOrderStatus(orderId, ORDER_STATUS.COMPLETADO);
+```
+
+### Status Transitions
+
+Use the helper functions to validate status changes:
+
+```typescript
+import { getAvailableTransitions, canTransitionTo } from '../constants/orderStatus';
+
+// Get valid next statuses
+const nextStatuses = getAvailableTransitions(order.currentStatus);
+// Returns: [3, 5] for RESERVA (can go to EN_PROGRESO or CANCELADO)
+
+// Check if transition is valid
+if (canTransitionTo(order.currentStatus, ORDER_STATUS.COMPLETADO)) {
+  // Allow status update
+}
+```
+
+### Status Display
+
+Use the `StatusBadge` component for consistent status visualization:
+
+```typescript
+import { StatusBadge } from './StatusBadge';
+
+<StatusBadge statusId={order.currentStatus} />
+```
+
+Colors automatically assigned:
+- **1 (Reserva)**: Purple
+- **2 (Nuevo)**: Yellow
+- **3 (En Progreso)**: Blue
+- **4 (Completado)**: Green
+- **5 (Cancelado)**: Red
+
+### Payment Methods & Order Types
+
+Access via the `ConfigContext`:
+
+```typescript
+import { useConfig } from '../contexts/ConfigContext';
+
+function MyComponent() {
+  const { 
+    paymentMethods,      // [{ id: 1, name: "Efectivo" }, ...]
+    orderTypes,          // [{ id: 1, name: "Llevar" }, ...]
+    orderStatuses,       // [{ id: 1, name: "Reserva", code: "reserva" }, ...]
+    getPaymentMethodName,
+    getOrderTypeName,
+    getOrderStatusName
+  } = useConfig();
+
+  // Display names
+  const paymentName = getPaymentMethodName(order.paymentMethod); // "Efectivo"
+  const orderTypeName = getOrderTypeName(order.orderType);       // "En Local"
+  const statusName = getOrderStatusName(order.currentStatus);    // "En Progreso"
+}
+```
+
+### Creating Orders
+
+**Customer Order (Online):**
+```typescript
+const orderData = {
+  customerName: customerName,
+  items: orderItems,
+  paymentMethod: 1,      // 1 = Efectivo
+  orderType: 3,          // 3 = Llevar Web (online)
+  isReservation: true,   // Online orders are reservations
+};
+await apiClient.createCustomerOrder(orderData);
+```
+
+**Cashier Order (Takeaway):**
+```typescript
+const orderData = {
+  customerName: customerName,
+  items: orderItems,
+  paymentMethod: 1,      // 1 = Efectivo
+  orderType: 1,          // 1 = Llevar
+  isReservation: false,
+};
+await apiClient.createOrder(orderData);
+```
+
+**Cashier Order (Dine-in):**
+```typescript
+const orderData = {
+  customerName: `Mesa ${tableNumber}`,
+  tableNumber: tableNumber.toString(),
+  items: orderItems,
+  paymentMethod: 1,      // 1 = Efectivo
+  orderType: 2,          // 2 = En Local
+  isReservation: false,
+};
+await apiClient.createOrder(orderData);
+```
+
+### Complete Value Reference
+
+| **Order Status** | ID | Name | Code |
+|------------------|-----|------|------|
+| Reserva | 1 | Reserva | `reserva` |
+| Nuevo | 2 | Nuevo | `nuevo` |
+| En Progreso | 3 | En Progreso | `en_progreso` |
+| Completado | 4 | Completado | `completado` |
+| Cancelado | 5 | Cancelado | `cancelado` |
+
+| **Payment Method** | ID | Name |
+|--------------------|-----|------|
+| Cash | 1 | Efectivo |
+| QR Code | 2 | QR |
+
+| **Order Type** | ID | Name | Description |
+|----------------|-----|------|-------------|
+| Takeaway (Cashier) | 1 | Llevar | Cashier takeaway order |
+| Dine-in | 2 | En Local | Restaurant table order |
+| Takeaway (Online) | 3 | Llevar Web | Customer online order |
+
+### Currency Formatting
+
+Use the `Currency` component for consistent formatting:
+
+```typescript
+import { Currency } from './Currency';
+
+// Regular price
+<Currency amount={15.50} />
+// Output: "Bs. 15,50"
+
+// Large format (for totals)
+<Currency amount={1234.56} large />
+// Output: "Bs. 1.234,56"
+```
+
+The currency symbol (`Bs.` or `$`) is configured in Settings and applied globally.
+
+---
+
 ## Troubleshooting
 
 ### "Network Error" when logging in
