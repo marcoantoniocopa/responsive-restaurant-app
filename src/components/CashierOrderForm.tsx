@@ -158,7 +158,7 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
     setIsSubmitting(true);
     
     try {
-      const orderItems = Object.entries(cart).map(([itemId, quantity]) => {
+    const orderItems = Object.entries(cart).map(([itemId, quantity]) => {
         const item = products.find(i => i._id === itemId)!;
         
         // Handle Completo (virtual) products
@@ -179,20 +179,20 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
         }
         
         // Handle Single products
-        return {
+      return {
           productId: itemId,
           productName: item.name,
-          quantity,
+        quantity,
           unitPrice: item.sellPrice,
           isCompleto: false
-        };
-      });
+      };
+    });
 
       // Create order via API
       const orderData = {
         customerName: orderType === "takeaway" ? customerName.trim() : `Mesa ${tableNumber}`,
         tableNumber: orderType === "dinein" ? tableNumber?.toString() : undefined,
-        items: orderItems,
+      items: orderItems,
         paymentMethod: 1,  // 1 = Efectivo (default for cashier orders)
         orderType: orderType === "takeaway" ? 1 : 2,  // 1 = Llevar, 2 = En Local
         isReservation: false,
@@ -213,7 +213,7 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
       setTableNumber(null);
       setObservation("");
       
-      onClose();
+    onClose();
     } catch (error: any) {
       console.error("Failed to create order:", error);
       toast({
@@ -380,49 +380,49 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
                                 <h4 className="product-name">{product.name}</h4>
                                 <Badge variant="secondary" className="product-price-badge">
                                   <Currency amount={product.sellPrice} />
-                                </Badge>
-                              </div>
+                        </Badge>
+                      </div>
                               <p className="product-description">
                                 {product.description || "Producto delicioso"}
-                              </p>
-                            </div>
-                            
+                      </p>
+                    </div>
+                    
                             <div className="product-actions">
                               {cart[product._id] ? (
                                 <div className="quantity-controls">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
+                          <Button
+                            size="sm"
+                            variant="outline"
                                     onClick={() => removeFromCart(product._id)}
                                     className="quantity-btn"
-                                  >
+                          >
                                     <Minus className="quantity-btn-icon" />
-                                  </Button>
+                          </Button>
                                   <span className="quantity-value">
                                     {cart[product._id]}
                                   </span>
-                                  <Button
-                                    size="sm"
+                          <Button
+                            size="sm"
                                     onClick={() => addToCart(product._id)}
                                     className="quantity-btn"
-                                  >
+                          >
                                     <Plus className="quantity-btn-icon" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <Button
-                                  size="sm"
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
                                   onClick={() => addToCart(product._id)}
                                   className="add-btn"
-                                >
+                        >
                                   <Plus className="add-btn-icon" />
-                                  Agregar
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          Agregar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
                     ))
                   )}
                 </div>

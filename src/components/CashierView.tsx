@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { OrderCard, Order } from "./OrderCard";
 import { CashierOrderForm } from "./CashierOrderForm";
 import { Button } from "./ui/button";
@@ -35,6 +35,7 @@ export function CashierView({}: CashierViewProps) {
   });
   const { toast } = useToast();
   const { getOrderStatusName, getOrderStatusCode } = useConfig();
+  const isInitialMount = useRef(true);
 
   // Get local day start and end as ISO strings (UTC)
   const getLocalDayRangeAsUTC = () => {
@@ -152,8 +153,12 @@ export function CashierView({}: CashierViewProps) {
     fetchOrderCounts();
   }, []);
 
-  // Refetch when page or tab changes
+  // Refetch when page or tab changes (but not on initial mount)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     fetchOrders(false);
   }, [currentPage, selectedTab]);
 

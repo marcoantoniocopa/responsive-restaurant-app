@@ -382,8 +382,8 @@ export function KitchenView({}: KitchenViewProps) {
                 ) : (
                   <ChevronRight className="collapsible-icon" />
                 )}
-                <h3>Pedidos Pendientes</h3>
-                <Badge variant="secondary">{pendingOrders.length}</Badge>
+              <h3>Pedidos Pendientes</h3>
+              <Badge variant="secondary">{pendingOrders.length}</Badge>
                 {/* Kitchen item summary */}
                 <div className="kitchen-item-summary">
                   {Object.entries(pendingItemCounts.completos).map(([name, count]) => (
@@ -402,7 +402,7 @@ export function KitchenView({}: KitchenViewProps) {
                     </span>
                   ))}
                 </div>
-              </div>
+            </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="collapsible-section-content">
               <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
@@ -414,17 +414,17 @@ export function KitchenView({}: KitchenViewProps) {
                   
                   return (
                     <KitchenOrderCard
-                      key={order.id}
-                      order={order}
+                      key={order.id} 
+                        order={order}
                       onStatusChange={handleOrderStatusChange}
                       waitTime={waitTime}
                       isDetailModalOpen={detailModalOrderId === order.id}
                       onOpenDetailModal={setDetailModalOrderId}
                       onCloseDetailModal={() => setDetailModalOrderId(null)}
-                    />
+                      />
                   );
                 })}
-              </div>
+            </div>
               {!isPendingOnlyOpen && pendingOrders.length > DEFAULT_DISPLAY_LIMIT && (
                 <button 
                   className="section-view-more"
@@ -447,9 +447,9 @@ export function KitchenView({}: KitchenViewProps) {
                 ) : (
                   <ChevronRight className="collapsible-icon" />
                 )}
-                <h3>En Preparación</h3>
-                <Badge variant="secondary">{preparingOrders.length}</Badge>
-              </div>
+              <h3>En Preparación</h3>
+              <Badge variant="secondary">{preparingOrders.length}</Badge>
+            </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="collapsible-section-content">
               <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
@@ -461,17 +461,17 @@ export function KitchenView({}: KitchenViewProps) {
                   
                   return (
                     <KitchenOrderCard
-                      key={order.id}
-                      order={order}
+                      key={order.id} 
+                        order={order}
                       onStatusChange={handleOrderStatusChange}
                       waitTime={waitTime}
                       isDetailModalOpen={detailModalOrderId === order.id}
                       onOpenDetailModal={setDetailModalOrderId}
                       onCloseDetailModal={() => setDetailModalOrderId(null)}
-                    />
+                      />
                   );
                 })}
-              </div>
+            </div>
               {!isPreparingOnlyOpen && preparingOrders.length > DEFAULT_DISPLAY_LIMIT && (
                 <button 
                   className="section-view-more"
@@ -547,7 +547,7 @@ export function KitchenView({}: KitchenViewProps) {
                       onCloseDetailModal={() => setDetailModalOrderId(null)}
                     />
                   ))}
-              </div>
+          </div>
             </CollapsibleContent>
           </Collapsible>
         )}

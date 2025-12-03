@@ -63,9 +63,9 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     if (hasFetched && !force) return; // Prevent duplicate fetches
     if (fetchAttempted && !force) return; // Prevent retry loops on error
     
-    setIsLoading(true);
+      setIsLoading(true);
     setFetchAttempted(true);
-    
+      
     try {
       const [paymentMethodsData, orderTypesData, orderStatusesData] = await Promise.all([
         apiClient.getPaymentMethods(),
