@@ -31,6 +31,7 @@ export interface KitchenOrder {
   orderNumber?: string;
   customerName: string;
   tableNumber?: string;
+  observation?: string;
   items: Array<{
     name: string;
     quantity: number;
@@ -40,6 +41,7 @@ export interface KitchenOrder {
   status: number;
   timestamp: Date;
   orderType: number;
+  pickupTime?: Date;
 }
 
 interface KitchenOrderCardProps {
@@ -69,6 +71,16 @@ export function KitchenOrderCard({
     });
   };
 
+  // Determine which time to display
+  // For Llevar Web (orderType = 3) with status Reserva (status = 1), show pickupTime
+  // Otherwise show timestamp (order creation time)
+  const getDisplayTime = () => {
+    if (order.orderType === 3 && order.status === 1 && order.pickupTime) {
+      return formatTime(new Date(order.pickupTime));
+    }
+    return formatTime(order.timestamp);
+  };
+
   // Get available next statuses based on current status
   const availableStatuses = getAvailableTransitions(order.status);
 
@@ -93,6 +105,11 @@ export function KitchenOrderCard({
 
   // Get urgency level based on wait time
   const getUrgencyStyle = () => {
+    // Don't apply urgency styling for Llevar Web orders with status Reserva
+    if (order.orderType === 3 && order.status === 1) {
+      return "kitchen-card-normal";
+    }
+    
     if (waitTime > 20) return "kitchen-card-urgent-high";
     if (waitTime > 15) return "kitchen-card-urgent-medium";
     if (waitTime > 10) return "kitchen-card-urgent-low";
@@ -145,8 +162,8 @@ export function KitchenOrderCard({
           </span>
           <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
             <Clock className="h-2.5 w-2.5" />
-            <span>{formatTime(order.timestamp)}</span>
-            {waitTime > 0 && (
+            <span>{getDisplayTime()}</span>
+            {waitTime > 0 && !(order.orderType === 3 && order.status === 1) && (
               <Badge 
                 variant={waitTime > 15 ? "destructive" : "outline"} 
                 className="text-[8px] px-1 py-0"
@@ -156,6 +173,15 @@ export function KitchenOrderCard({
             )}
           </div>
         </div>
+
+        {/* Observation */}
+        {order.observation && (
+          <div className="mt-1 pt-1 border-t border-dashed border-gray-200">
+            <p className="text-[9px] text-muted-foreground italic">
+              📝 {order.observation}
+            </p>
+          </div>
+        )}
       </CardHeader>
       
       <CardContent className="kitchen-card-content">
@@ -249,9 +275,17 @@ export function KitchenOrderCard({
                 <span className="font-medium">{order.customerName}</span>
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  <span>{formatTime(order.timestamp)}</span>
+                  <span>{getDisplayTime()}</span>
                 </div>
               </div>
+              {/* Observation */}
+              {order.observation && (
+                <div className="mt-2 pt-2 border-t border-dashed border-gray-200">
+                  <p className="text-xs text-muted-foreground italic">
+                    📝 <strong>Observación:</strong> {order.observation}
+                  </p>
+                </div>
+              )}
             </DialogHeader>
             
             <div className="py-4">
@@ -310,4 +344,5 @@ export function KitchenOrderCard({
     </Card>
   );
 }
+
 

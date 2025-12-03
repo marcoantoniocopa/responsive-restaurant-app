@@ -71,6 +71,7 @@ export function KitchenView({}: KitchenViewProps) {
         orderNumber: order.orderNumber,
         customerName: order.customerName,
         tableNumber: order.tableNumber,
+        observation: order.observation,
         items: order.items.map((item: any) => ({
           name: item.productName,
           quantity: item.quantity,
@@ -80,6 +81,7 @@ export function KitchenView({}: KitchenViewProps) {
         status: order.currentStatus,
         timestamp: new Date(order.createdAt),
         orderType: order.orderType,
+        pickupTime: order.pickupTime ? new Date(order.pickupTime) : undefined,
       }));
       
       setOrders(transformedOrders);
@@ -117,6 +119,7 @@ export function KitchenView({}: KitchenViewProps) {
         orderNumber: order.orderNumber,
         customerName: order.customerName,
         tableNumber: order.tableNumber,
+        observation: order.observation,
         items: order.items.map((item: any) => ({
           name: item.productName,
           quantity: item.quantity,
@@ -126,6 +129,7 @@ export function KitchenView({}: KitchenViewProps) {
         status: order.currentStatus,
         timestamp: new Date(order.createdAt),
         orderType: order.orderType,
+        pickupTime: order.pickupTime ? new Date(order.pickupTime) : undefined,
       };
 
       setOrders((prevOrders) => [newOrder, ...prevOrders]);

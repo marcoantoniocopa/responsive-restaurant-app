@@ -40,11 +40,42 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [customerName, setCustomerName] = useState("");
   const [observation, setObservation] = useState("");
+  const [pickupTimeSlot, setPickupTimeSlot] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
+
+  // Generate time slots from 11:00 to 15:00 in 15-minute intervals
+  const generateTimeSlots = () => {
+    const slots = [];
+    const startHour = 11;
+    const endHour = 15;
+    
+    for (let hour = startHour; hour <= endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 15) {
+        if (hour === endHour && minute > 0) break; // Stop at 15:00
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(timeString);
+      }
+    }
+    
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
+  // Convert time slot to full datetime
+  const getPickupDateTime = () => {
+    if (!pickupTimeSlot) return undefined;
+    
+    const today = new Date();
+    const [hours, minutes] = pickupTimeSlot.split(':');
+    today.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    
+    return today.toISOString();
+  };
   const { toast } = useToast();
 
   useEffect(() => {
@@ -175,6 +206,7 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
         isReservation: true,
         reservationTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),  // 30 minutes from now
         observation: observation.trim() || undefined,
+        pickupTime: getPickupDateTime(),
       };
 
       await apiClient.createCustomerOrder(orderData);
@@ -237,6 +269,27 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
               rows={2}
               maxLength={250}
             />
+          </div>
+          <div className="form-field">
+            <Label htmlFor="pickupTime" className="form-label">Hora de recojo (opcional)</Label>
+            <select
+              id="pickupTime"
+              value={pickupTimeSlot}
+              onChange={(e) => setPickupTimeSlot(e.target.value)}
+              className="input-field input-field--optional"
+            >
+              <option value="">Selecciona una hora</option>
+              {timeSlots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
+            {pickupTimeSlot && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Recojo hoy a las {pickupTimeSlot}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

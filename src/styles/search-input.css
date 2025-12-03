@@ -35,7 +35,7 @@
 }
 
 .search-input::placeholder {
-  color: hsl(var(--muted-foreground));
+  color: #9ca3af !important; /* gray-400 */
 }
 
 .search-clear-button {
