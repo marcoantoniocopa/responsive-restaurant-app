@@ -67,7 +67,7 @@ export function Navigation() {
       path: '/products',
       label: 'Products',
       icon: Package,
-      show: hasRole('admin'),
+      show: hasRole('admin') || hasRole('cashier'),
     },
     {
       path: '/categories',

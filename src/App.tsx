@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Navigation } from "./components/Navigation";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import { PedidosPage } from "./pages/PedidosPage";
 import { CajaPage } from "./pages/CajaPage";
 import { CocinaPage } from "./pages/CocinaPage";
@@ -13,6 +14,14 @@ import { Order } from "./components/OrderCard";
 import { toast } from "sonner@2.0.3";
 import { Toaster } from "./components/ui/toaster";
 import { useAuth } from "./contexts/AuthContext";
+
+// Role constants for route protection
+const ROLES = {
+  ADMIN: 'admin',
+  CASHIER: 'cashier',
+  CHEF: 'chef',
+  KITCHEN: 'kitchen',
+};
 
 // Mock data for demonstration
 const generateMockOrders = (): Order[] => {
@@ -136,34 +145,77 @@ function AppContent() {
       <main>
         <Routes>
           <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
+          
+          {/* Pedidos - Admin and Cashier only */}
           <Route
             path="/pedidos"
-            element={<PedidosPage onOrderSubmit={handleNewOrder} />}
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.CASHIER]}>
+                <PedidosPage onOrderSubmit={handleNewOrder} />
+              </RoleProtectedRoute>
+            }
           />
+          
+          {/* Caja - Admin and Cashier only */}
           <Route
             path="/caja"
-            element={<CajaPage />}
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.CASHIER]}>
+                <CajaPage />
+              </RoleProtectedRoute>
+            }
           />
+          
+          {/* Cocina - Admin, Chef, and Kitchen staff */}
           <Route
             path="/cocina"
-            element={<CocinaPage />}
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.CHEF, ROLES.KITCHEN]}>
+                <CocinaPage />
+              </RoleProtectedRoute>
+            }
           />
+          
+          {/* Products - Admin and Cashier */}
           <Route
             path="/products"
-            element={<ProductsPage />}
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.CASHIER]}>
+                <ProductsPage />
+              </RoleProtectedRoute>
+            }
           />
+          
+          {/* Categories - Admin only */}
           <Route
             path="/categories"
-            element={<CategoriesPage />}
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                <CategoriesPage />
+              </RoleProtectedRoute>
+            }
           />
+          
+          {/* Settings - Admin only */}
           <Route
             path="/settings"
-            element={<SettingsPage />}
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                <SettingsPage />
+              </RoleProtectedRoute>
+            }
           />
+          
+          {/* Contable - Admin only */}
           <Route
             path="/contable"
-            element={<ContablePage />}
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+                <ContablePage />
+              </RoleProtectedRoute>
+            }
           />
+          
           <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
         </Routes>
       </main>
