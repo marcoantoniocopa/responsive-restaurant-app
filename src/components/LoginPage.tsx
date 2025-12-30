@@ -61,7 +61,7 @@ export const LoginPage = () => {
               <Input
                 id="username"
                 type="text"
-                placeholder="Ingresa tu usuarname"
+                placeholder="Ingresa tu nombre de usuario"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={isLoading}

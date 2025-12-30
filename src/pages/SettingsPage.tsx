@@ -66,7 +66,7 @@ export function SettingsPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.error?.message || 'No se pudieron cargar la configuración',
+        description: error.response?.data?.error?.message || 'No se pudieron cargar la configuración.',
       });
     } finally {
       setLoading(false);
@@ -132,7 +132,7 @@ export function SettingsPage() {
       toast({
         variant: 'destructive',
         title: 'Error de Validación',
-        description: 'El precio del Completo debe ser mayor a 0',
+        description: 'El precio del Completo debe ser mayor a 0.',
       });
       return;
     }
@@ -141,7 +141,7 @@ export function SettingsPage() {
       toast({
         variant: 'destructive',
         title: 'Error de Validación',
-        description: 'El número de mesas debe estar entre 1 y 50',
+        description: 'El número de mesas debe estar entre 1 y 50.',
       });
       return;
     }
@@ -151,7 +151,7 @@ export function SettingsPage() {
         toast({
           variant: 'destructive',
           title: 'Error de Validación',
-          description: 'Todas las reglas deben tener una categoría seleccionada',
+          description: 'Todas las reglas deben tener una categoría seleccionada.',
         });
         return;
       }
@@ -170,7 +170,7 @@ export function SettingsPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Error al guardar la configuración',
+        description: error.response?.data?.error?.message || 'Error al guardar la configuración.',
       });
     } finally {
       setSaving(false);

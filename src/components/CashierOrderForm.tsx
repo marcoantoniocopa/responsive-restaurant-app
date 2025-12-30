@@ -132,12 +132,12 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
 
   // Reset table number when switching to takeaway
   useEffect(() => {
-    if (orderType === "Llevar") {
+    if (orderType === "takeaway") {
       setTableNumber(null);
     }
   }, [orderType]);
 
-  const filteredProducts = selectedCategory === "todo"
+  const filteredProducts = selectedCategory === "all"
     ? products
     : products.filter(
         (product) => product.categoryId?._id === selectedCategory
@@ -221,11 +221,11 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
 
       // Create order via API
       const orderData = {
-        customerName: orderType === "Llevar" ? customerName.trim() : `Mesa ${tableNumber}`,
+        customerName: orderType === "takeaway" ? customerName.trim() : `Mesa ${tableNumber}`,
         tableNumber: orderType === "dinein" ? tableNumber?.toString() : undefined,
       items: orderItems,
         paymentMethod: 1,  // 1 = Efectivo (default for cashier orders)
-        orderType: orderType === "Llevar" ? 1 : 2,  // 1 = Llevar, 2 = En Local
+        orderType: orderType === "takeaway" ? 1 : 2,  // 1 = Llevar, 2 = En Local
         isReservation: false,
         observation: observation.trim() || undefined,
         pickupTime: getPickupDateTime(),
