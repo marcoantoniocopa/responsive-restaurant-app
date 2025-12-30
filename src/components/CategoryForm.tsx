@@ -34,11 +34,11 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
     const newErrors: any = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Category name is required';
+      newErrors.name = 'El nombre de la categoría es obligatorio';
     }
 
     if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
+      newErrors.description = 'La descripción es obligatoria';
     }
 
     setErrors(newErrors);
@@ -68,7 +68,7 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
 
       onSuccess();
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error?.message || 'Failed to save category';
+      const errorMessage = error.response?.data?.error?.message || 'Error al guardar la categoría';
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -99,12 +99,12 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Category Name *</Label>
+        <Label htmlFor="name">Nombre de la Categoría *</Label>
         <Input
           id="name"
           value={formData.name}
           onChange={(e) => handleChange('name', e.target.value)}
-          placeholder="e.g., Completo, Individual, Bebidas"
+          placeholder="Ej: Completo, Individual, Bebidas"
           disabled={loading}
         />
         {errors.name && (
@@ -113,12 +113,12 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description *</Label>
+        <Label htmlFor="description">Descripción *</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => handleChange('description', e.target.value)}
-          placeholder="Describe the category..."
+          placeholder="Describe la categoría..."
           rows={3}
           disabled={loading}
         />
@@ -134,10 +134,10 @@ export function CategoryForm({ category, onSuccess, onCancel }: CategoryFormProp
           onClick={onCancel}
           disabled={loading}
         >
-          Cancel
+          Cancelar
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? 'Saving...' : category ? 'Update Category' : 'Create Category'}
+          {loading ? 'Guardando...' : category ? 'Actualizar Categoría' : 'Crear Categoría'}
         </Button>
       </div>
     </form>

@@ -115,11 +115,11 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
           setSelectedCategory(completoCategory._id);
         }
       } catch (error) {
-        console.error("Failed to fetch data:", error);
+        console.error("Error al cargar los datos:", error);
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to load products. Please try again.",
+          description: "Error al cargar los productos. Por favor, intente nuevamente.",
           variant: "destructive",
         });
       } finally {
@@ -132,12 +132,12 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
 
   // Reset table number when switching to takeaway
   useEffect(() => {
-    if (orderType === "takeaway") {
+    if (orderType === "Llevar") {
       setTableNumber(null);
     }
   }, [orderType]);
 
-  const filteredProducts = selectedCategory === "all"
+  const filteredProducts = selectedCategory === "todo"
     ? products
     : products.filter(
         (product) => product.categoryId?._id === selectedCategory
@@ -203,7 +203,7 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
               const component = products.find(p => p._id === compId);
               return {
                 productId: compId,
-                productName: component?.name || 'Unknown'
+                productName: component?.name || 'Desconocido'
               };
             })
           };
@@ -221,11 +221,11 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
 
       // Create order via API
       const orderData = {
-        customerName: orderType === "takeaway" ? customerName.trim() : `Mesa ${tableNumber}`,
+        customerName: orderType === "Llevar" ? customerName.trim() : `Mesa ${tableNumber}`,
         tableNumber: orderType === "dinein" ? tableNumber?.toString() : undefined,
       items: orderItems,
         paymentMethod: 1,  // 1 = Efectivo (default for cashier orders)
-        orderType: orderType === "takeaway" ? 1 : 2,  // 1 = Llevar, 2 = En Local
+        orderType: orderType === "Llevar" ? 1 : 2,  // 1 = Llevar, 2 = En Local
         isReservation: false,
         observation: observation.trim() || undefined,
         pickupTime: getPickupDateTime(),
@@ -247,11 +247,11 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
       
     onClose();
     } catch (error: any) {
-      console.error("Failed to create order:", error);
+      console.error("Error al crear el pedido:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.response?.data?.message || "Failed to create order. Please try again.",
+        description: error.response?.data?.message || "Error al crear el pedido. Por favor, intente nuevamente.",
         variant: "destructive",
       });
     } finally {
@@ -493,7 +493,7 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
                   <div className="cart-items-count">
                     <ShoppingCart className="cart-icon" />
                     <span>
-                      {getCartItemCount()} {getCartItemCount() === 1 ? 'item' : 'items'}
+                      {getCartItemCount()} {getCartItemCount() === 1 ? 'producto' : 'productos'}
                     </span>
                   </div>
                   <span className="cart-total">

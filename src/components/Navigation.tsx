@@ -65,13 +65,13 @@ export function Navigation() {
     },
     {
       path: '/products',
-      label: 'Products',
+      label: 'Productos',
       icon: Package,
       show: hasRole('admin') || hasRole('cashier'),
     },
     {
       path: '/categories',
-      label: 'Categories',
+      label: 'Categorías',
       icon: FolderTree,
       show: hasRole('admin'),
     },
@@ -83,7 +83,7 @@ export function Navigation() {
     },
     {
       path: '/settings',
-      label: 'Settings',
+      label: 'Configuración',
       icon: Settings,
       show: hasRole('admin'),
     },
@@ -138,7 +138,7 @@ export function Navigation() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <span>Cerrar Sesión</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -148,12 +148,12 @@ export function Navigation() {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
                   <Menu className="h-6 w-6" />
-                  <span className="sr-only">Toggle menu</span>
+                  <span className="sr-only">Alternar menú</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-72">
                 <SheetHeader>
-                  <SheetTitle>Menu</SheetTitle>
+                  <SheetTitle>Menú</SheetTitle>
                 </SheetHeader>
                 
                 <div className="mobile-menu-content">

@@ -83,7 +83,7 @@ export function ProductsPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to load products',
+        description: error.response?.data?.error?.message || 'No se pudieron cargar los productos',
       });
     } finally {
       setLoading(false);
@@ -113,11 +113,11 @@ export function ProductsPage() {
     setIsFormOpen(false);
     setSelectedProduct(null);
     fetchProducts();
-    toast({
-      variant: 'success',
-      title: 'Success',
-      description: selectedProduct ? 'Product updated successfully' : 'Product created successfully',
-    });
+      toast({
+        variant: 'success',
+        title: 'Éxito',
+        description: selectedProduct ? 'Producto actualizado exitosamente' : 'Producto creado exitosamente',
+      });
   };
 
   const handleDeleteClick = (productId: string) => {
@@ -132,15 +132,15 @@ export function ProductsPage() {
       await apiClient.deleteProduct(productToDelete, 'Deleted by admin');
       toast({
         variant: 'success',
-        title: 'Success',
-        description: 'Product deleted successfully',
+        title: 'Éxito',
+        description: 'Producto eliminado exitosamente',
       });
       fetchProducts();
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to delete product',
+        description: error.response?.data?.error?.message || 'Error al eliminar el producto',
       });
     } finally {
       setIsDeleteDialogOpen(false);
@@ -153,15 +153,15 @@ export function ProductsPage() {
       await apiClient.toggleProductAvailability(productId);
       toast({
         variant: 'success',
-        title: 'Success',
-        description: 'Product availability updated',
+        title: 'Éxito',
+        description: 'Disponibilidad del producto actualizada',
       });
       fetchProducts();
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to update product',
+        description: error.response?.data?.error?.message || 'Error al actualizar el producto',
       });
     }
   };
@@ -206,8 +206,8 @@ export function ProductsPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Products Management</h1>
-          <p className="text-muted-foreground">Manage your restaurant products</p>
+          <h1 className="text-3xl font-bold">Gestión de Productos</h1>
+          <p className="text-muted-foreground">Administra los productos de tu restaurante</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={fetchProducts} variant="outline" size="lg">
@@ -216,7 +216,7 @@ export function ProductsPage() {
           </Button>
           <Button onClick={handleAddProduct} size="lg">
             <Plus className="mr-2 h-4 w-4" />
-            Add Product
+            Agregar Producto
           </Button>
         </div>
       </div>
@@ -289,10 +289,10 @@ export function ProductsPage() {
                       </>
                     ) : (
                       <>
-                        <p className="text-lg">No products in this category yet.</p>
+                        <p className="text-lg">Aún no hay productos en esta categoría.</p>
                         <Button onClick={handleAddProduct} className="mt-4">
                           <Plus className="mr-2 h-4 w-4" />
-                          Add First Product
+                          Agregar Primer Producto
                         </Button>
                       </>
                     )}
@@ -301,13 +301,13 @@ export function ProductsPage() {
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>
-                        <TableRow>
-                          <TableHead>Nombre</TableHead>
-                          <TableHead>Descripción</TableHead>
-                          <TableHead className="text-right">Precio</TableHead>
-                          <TableHead className="text-center">Status</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
+                      <TableRow>
+                        <TableHead>Nombre</TableHead>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead className="text-right">Precio</TableHead>
+                        <TableHead className="text-center">Estado</TableHead>
+                        <TableHead className="text-right">Acciones</TableHead>
+                      </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredProducts.map((product) => (
@@ -316,14 +316,14 @@ export function ProductsPage() {
                               {product.name}
                               {product.isVirtual && (
                                 <Badge variant="secondary" className="ml-2 text-xs">
-                                  Auto-generated
+                                  Auto-generado
                                 </Badge>
                               )}
                             </TableCell>
                             <TableCell className="max-w-md truncate">
                               {product.description}
                               {product.isVirtual && !product.description && (
-                                <span className="text-muted-foreground italic">Generated combo</span>
+                                <span className="text-muted-foreground italic">Combo generado</span>
                               )}
                             </TableCell>
                             <TableCell className="text-right font-semibold">
@@ -334,7 +334,7 @@ export function ProductsPage() {
                                 <Badge variant="outline">Auto</Badge>
                               ) : (
                                 <Badge variant={product.isAvailable ? 'default' : 'secondary'}>
-                                  {product.isAvailable ? 'Available' : 'Unavailable'}
+                                  {product.isAvailable ? 'Disponible' : 'No Disponible'}
                                 </Badge>
                               )}
                             </TableCell>
@@ -342,7 +342,7 @@ export function ProductsPage() {
                               {product.isVirtual ? (
                                 <div className="flex justify-end">
                                   <span className="text-xs text-muted-foreground italic">
-                                    Managed in Settings
+                                    Gestionado en Configuración
                                   </span>
                                 </div>
                               ) : (
@@ -351,7 +351,7 @@ export function ProductsPage() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleToggleAvailability(product._id)}
-                                    title={product.isAvailable ? 'Mark as unavailable' : 'Mark as available'}
+                                    title={product.isAvailable ? 'Marcar como no disponible' : 'Marcar como disponible'}
                                   >
                                     {product.isAvailable ? (
                                       <ToggleRight className="h-4 w-4 text-green-600" />
@@ -393,12 +393,12 @@ export function ProductsPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedProduct ? 'Edit Product' : 'Add New Product'}
+              {selectedProduct ? 'Editar Producto' : 'Agregar Nuevo Producto'}
             </DialogTitle>
             <DialogDescription>
               {selectedProduct
-                ? 'Update the product information below'
-                : 'Fill in the product information below'}
+                ? 'Actualiza la información del producto a continuación'
+                : 'Completa la información del producto a continuación'}
             </DialogDescription>
           </DialogHeader>
           <ProductForm
@@ -414,18 +414,18 @@ export function ProductsPage() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will soft delete the product. The product will be marked as deleted but
-              can be restored later for audit purposes.
+              Esto eliminará el producto de forma temporal. El producto será marcado como eliminado pero
+              puede ser restaurado más tarde para fines de auditoría.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setProductToDelete(null)}>
-              Cancel
+              Cancelar
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>
-              Delete Product
+              Eliminar Producto
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

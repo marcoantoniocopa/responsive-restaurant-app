@@ -18,7 +18,7 @@ import { useAuth } from "./contexts/AuthContext";
 // Role constants for route protection
 const ROLES = {
   ADMIN: 'admin',
-  CASHIER: 'cashier',
+  CASHIER: 'cajero',
   CHEF: 'chef',
   KITCHEN: 'kitchen',
 };

@@ -62,7 +62,7 @@ export function CategoriesPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to load categories',
+        description: error.response?.data?.error?.message || 'No se pudieron cargar las categorías',
       });
     } finally {
       setLoading(false);
@@ -83,11 +83,11 @@ export function CategoriesPage() {
     setIsFormOpen(false);
     setSelectedCategory(null);
     fetchCategories();
-    toast({
-      variant: 'success',
-      title: 'Success',
-      description: selectedCategory ? 'Category updated successfully' : 'Category created successfully',
-    });
+      toast({
+        variant: 'success',
+        title: 'Éxito',
+        description: selectedCategory ? 'Categoría actualizada exitosamente' : 'Categoría creada exitosamente',
+      });
   };
 
   const handleDeleteClick = (categoryId: string) => {
@@ -102,15 +102,15 @@ export function CategoriesPage() {
       await apiClient.deleteCategory(categoryToDelete, 'Deleted by admin');
       toast({
         variant: 'success',
-        title: 'Success',
-        description: 'Category deleted successfully',
+        title: 'Éxito',
+        description: 'Categoría eliminada exitosamente',
       });
       fetchCategories();
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to delete category',
+        description: error.response?.data?.error?.message || 'Error al eliminar la categoría',
       });
     } finally {
       setIsDeleteDialogOpen(false);
@@ -122,34 +122,34 @@ export function CategoriesPage() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Categories Management</h1>
-          <p className="text-muted-foreground">Manage your restaurant categories</p>
+          <h1 className="text-3xl font-bold">Gestión de Categorías</h1>
+          <p className="text-muted-foreground">Administra las categorías de tu restaurante</p>
         </div>
         <Button onClick={handleAddCategory} size="lg">
           <Plus className="mr-2 h-4 w-4" />
-          Add Category
+          Agregar Categoría
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Categories ({categories.length})</CardTitle>
+          <CardTitle>Todas las Categorías ({categories.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8">Cargando...</div>
           ) : categories.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No categories found. Add your first category to get started.
+              No se encontraron categorías. Agrega tu primera categoría para comenzar.
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Descripción</TableHead>
+                  <TableHead>Creado</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -191,12 +191,12 @@ export function CategoriesPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {selectedCategory ? 'Edit Category' : 'Add New Category'}
+              {selectedCategory ? 'Editar Categoría' : 'Agregar Nueva Categoría'}
             </DialogTitle>
             <DialogDescription>
               {selectedCategory
-                ? 'Update the category information below'
-                : 'Fill in the category information below'}
+                ? 'Actualiza la información de la categoría a continuación'
+                : 'Completa la información de la categoría a continuación'}
             </DialogDescription>
           </DialogHeader>
           <CategoryForm
@@ -211,18 +211,18 @@ export function CategoriesPage() {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will soft delete the category. The category will be marked as deleted but
-              can be restored later for audit purposes. Note: Products in this category will not be affected.
+              Esto eliminará la categoría de forma temporal. La categoría será marcada como eliminada pero
+              puede ser restaurada más tarde para fines de auditoría. Nota: Los productos en esta categoría no se verán afectados.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setCategoryToDelete(null)}>
-              Cancel
+              Cancelar
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>
-              Delete Category
+              Eliminar Categoría
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

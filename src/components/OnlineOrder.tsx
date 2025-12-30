@@ -113,7 +113,7 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to load products. Please try again.",
+          description: "No se pudieron cargar los productos. Por favor, intente nuevamente.",
         });
       } finally {
         setIsLoading(false);
@@ -181,7 +181,7 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
               const component = products.find(p => p._id === compId);
               return {
                 productId: compId,
-                productName: component?.name || 'Unknown'
+                productName: component?.name || 'Desconocido'
               };
             })
           };
@@ -226,7 +226,7 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.response?.data?.message || "Failed to create order. Please try again.",
+        description: error.response?.data?.message || "Error al crear el pedido. Por favor, intente nuevamente.",
       });
     } finally {
       setIsSubmitting(false);
@@ -403,7 +403,7 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
               <div className="cart-items-count">
                 <ShoppingCart className="cart-icon" />
                 <span>
-                  {getCartItemCount()} {getCartItemCount() === 1 ? 'item' : 'items'}
+                  {getCartItemCount()} {getCartItemCount() === 1 ? 'producto' : 'productos'}
                 </span>
               </div>
               <span className="cart-total">
