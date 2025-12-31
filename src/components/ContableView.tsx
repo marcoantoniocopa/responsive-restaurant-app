@@ -308,7 +308,7 @@ export function ContableView() {
     <div className="contable-container">
       {/* Header */}
       <div className="contable-header">
-        <h2 className="contable-title">Dashboard Contable</h2>
+        <h2 className="contable-title">Panel Contable</h2>
         <div className="contable-header-actions">
           <Button 
             variant="outline" 

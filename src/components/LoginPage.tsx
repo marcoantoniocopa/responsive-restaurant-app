@@ -56,7 +56,7 @@ export const LoginPage = () => {
 
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm font-medium">
-                Username
+                Usuario
               </Label>
               <Input
                 id="username"
@@ -74,7 +74,7 @@ export const LoginPage = () => {
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium">
-                Password
+                Contraseña
               </Label>
               <div className="relative">
                 <Input
