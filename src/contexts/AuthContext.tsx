@@ -91,12 +91,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setIsLoading(true);
       const userData = await apiClient.login(username, password);
       setUser(userData);
-      toast.success('Login successful', {
-        description: `Welcome back, ${userData.name || username}!`,
+      toast.success('Inicio de sesión exitoso', {
+        description: `Bienvenido de nuevo, ${userData.name || username}!`,
       });
     } catch (error: any) {
-      const message = error.response?.data?.error?.message || 'Login failed';
-      toast.error('Login failed', {
+      const message = error.response?.data?.error?.message || 'Error al iniciar sesión';
+      toast.error('Error al iniciar sesión', {
         description: message,
       });
       throw error;
@@ -109,7 +109,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       await apiClient.logoutUser();
       setUser(null);
-      toast.success('Logged out successfully');
+      toast.success('Sesión cerrada exitosamente');
     } catch (error) {
       console.error('Logout failed:', error);
       // Still clear local state even if API call fails

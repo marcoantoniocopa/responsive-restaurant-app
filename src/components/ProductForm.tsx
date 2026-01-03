@@ -50,23 +50,23 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
     const newErrors: any = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Product name is required';
+      newErrors.name = 'El nombre del producto es obligatorio.';
     }
 
     if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
+      newErrors.description = 'La descripción es obligatoria.';
     }
 
     if (!formData.sellPrice || parseFloat(formData.sellPrice) <= 0) {
-      newErrors.sellPrice = 'Selling price must be greater than 0';
+      newErrors.sellPrice = 'El precio de venta debe ser mayor a 0.';
     }
 
     if (!formData.categoryId) {
-      newErrors.categoryId = 'Category is required';
+      newErrors.categoryId = 'La categoría es obligatoria.';
     }
 
     if (formData.price && parseFloat(formData.price) < 0) {
-      newErrors.price = 'Base price cannot be negative';
+      newErrors.price = 'El precio base no puede ser negativo.';
     }
 
     setErrors(newErrors);
@@ -100,7 +100,7 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
 
       onSuccess();
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error?.message || 'Failed to save product';
+      const errorMessage = error.response?.data?.error?.message || 'Error al guardar el producto.';
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -131,12 +131,12 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Product Name *</Label>
+        <Label htmlFor="name">Nombre del Producto *</Label>
         <Input
           id="name"
           value={formData.name}
           onChange={(e) => handleChange('name', e.target.value)}
-          placeholder="e.g., Pizza Margherita"
+          placeholder="Ej: Pizza Margherita"
           disabled={loading}
         />
         {errors.name && (
@@ -145,14 +145,14 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="category">Category *</Label>
+        <Label htmlFor="category">Categoría *</Label>
         <Select
           value={formData.categoryId}
           onValueChange={(value) => handleChange('categoryId', value)}
           disabled={loading}
         >
           <SelectTrigger id="category">
-            <SelectValue placeholder="Select a category" />
+            <SelectValue placeholder="Selecciona una categoría" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
@@ -168,12 +168,12 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description *</Label>
+        <Label htmlFor="description">Descripción *</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => handleChange('description', e.target.value)}
-          placeholder="Describe the product..."
+          placeholder="Describe el producto..."
           rows={3}
           disabled={loading}
         />
@@ -184,7 +184,7 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="price">Base Price (Optional)</Label>
+          <Label htmlFor="price">Precio Base (Opcional)</Label>
           <Input
             id="price"
             type="number"
@@ -198,12 +198,12 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
             <p className="text-sm text-red-600">{errors.price}</p>
           )}
           <p className="text-xs text-muted-foreground">
-            Cost price for internal tracking
+            Precio de costo para seguimiento interno
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="sellPrice">Selling Price *</Label>
+          <Label htmlFor="sellPrice">Precio de Venta *</Label>
           <Input
             id="sellPrice"
             type="number"
@@ -217,7 +217,7 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
             <p className="text-sm text-red-600">{errors.sellPrice}</p>
           )}
           <p className="text-xs text-muted-foreground">
-            Price shown to customers
+            Precio mostrado a los clientes
           </p>
         </div>
       </div>
@@ -232,7 +232,7 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
           className="rounded"
         />
         <Label htmlFor="isAvailable" className="cursor-pointer">
-          Product is available for ordering
+          El producto está disponible para pedidos
         </Label>
       </div>
 
@@ -243,10 +243,10 @@ export function ProductForm({ product, categories, onSuccess, onCancel }: Produc
           onClick={onCancel}
           disabled={loading}
         >
-          Cancel
+          Cancelar
         </Button>
         <Button type="submit" disabled={loading}>
-          {loading ? 'Saving...' : product ? 'Update Product' : 'Create Product'}
+          {loading ? 'Guardando...' : product ? 'Actualizar Producto' : 'Crear Producto'}
         </Button>
       </div>
     </form>

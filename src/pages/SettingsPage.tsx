@@ -66,7 +66,7 @@ export function SettingsPage() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to load settings',
+        description: error.response?.data?.error?.message || 'No se pudieron cargar la configuración.',
       });
     } finally {
       setLoading(false);
@@ -131,8 +131,8 @@ export function SettingsPage() {
     if (settings.completoPrice <= 0) {
       toast({
         variant: 'destructive',
-        title: 'Validation Error',
-        description: 'Completo price must be greater than 0',
+        title: 'Error de Validación',
+        description: 'El precio del Completo debe ser mayor a 0.',
       });
       return;
     }
@@ -140,8 +140,8 @@ export function SettingsPage() {
     if (settings.numberOfTables < 1 || settings.numberOfTables > 50) {
       toast({
         variant: 'destructive',
-        title: 'Validation Error',
-        description: 'Number of tables must be between 1 and 50',
+        title: 'Error de Validación',
+        description: 'El número de mesas debe estar entre 1 y 50.',
       });
       return;
     }
@@ -150,8 +150,8 @@ export function SettingsPage() {
       if (!rule.categoryId) {
         toast({
           variant: 'destructive',
-          title: 'Validation Error',
-          description: 'All rules must have a category selected',
+          title: 'Error de Validación',
+          description: 'Todas las reglas deben tener una categoría seleccionada.',
         });
         return;
       }
@@ -163,14 +163,14 @@ export function SettingsPage() {
       await refreshSettings(); // Refresh global settings
       toast({
         variant: 'success',
-        title: 'Success',
-        description: 'Settings updated successfully. Completos will be regenerated.',
+        title: 'Éxito',
+        description: 'Configuración actualizada exitosamente. Los Completos se regenerarán.',
       });
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.error?.message || 'Failed to save settings',
+        description: error.response?.data?.error?.message || 'Error al guardar la configuración.',
       });
     } finally {
       setSaving(false);
@@ -178,7 +178,7 @@ export function SettingsPage() {
   };
 
   const getCategoryName = (categoryId: string) => {
-    return categories.find(c => c._id === categoryId)?.name || 'Unknown';
+    return categories.find(c => c._id === categoryId)?.name || 'Desconocido';
   };
 
   const getPreviewCount = () => {
@@ -192,27 +192,27 @@ export function SettingsPage() {
     <div className="container mx-auto p-6 space-y-6 max-w-4xl">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">Configure Completo generation rules</p>
+          <h1 className="text-3xl font-bold">Configuración</h1>
+          <p className="text-muted-foreground">Configura las reglas de generación de Completo</p>
         </div>
       </div>
 
       {loading ? (
-        <div className="text-center py-8">Loading...</div>
+        <div className="text-center py-8">Cargando...</div>
       ) : (
         <>
           {/* General Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>General Settings</CardTitle>
+              <CardTitle>Configuración General</CardTitle>
               <CardDescription>
-                Basic restaurant configuration
+                Configuración básica del restaurante
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
                 <Label htmlFor="numberOfTables" className="min-w-[150px]">
-                  Number of Tables
+                  Número de Mesas
                 </Label>
                 <Input
                   id="numberOfTables"
@@ -227,14 +227,14 @@ export function SettingsPage() {
               
               <div className="flex items-center gap-4">
                 <Label htmlFor="currencySymbol" className="min-w-[150px]">
-                  Currency
+                  Moneda
                 </Label>
                 <Select
                   value={settings.currencySymbol}
                   onValueChange={(value) => setSettings({ ...settings, currencySymbol: value })}
                 >
                   <SelectTrigger className="max-w-[200px]">
-                    <SelectValue placeholder="Select currency" />
+                    <SelectValue placeholder="Selecciona una moneda" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="$">Dolares - $</SelectItem>
@@ -248,15 +248,15 @@ export function SettingsPage() {
           {/* Completo Price Configuration */}
           <Card>
             <CardHeader>
-              <CardTitle>Completo Price</CardTitle>
+              <CardTitle>Precio del Completo</CardTitle>
               <CardDescription>
-                Fixed price for all auto-generated Completo products
+                Precio fijo para todos los productos Completo auto-generados
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-4">
                 <Label htmlFor="completoPrice" className="min-w-[100px]">
-                  Price ({settings.currencySymbol})
+                  Precio ({settings.currencySymbol})
                 </Label>
                 <Input
                   id="completoPrice"
@@ -276,22 +276,22 @@ export function SettingsPage() {
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle>Completo Composition Rules</CardTitle>
+                  <CardTitle>Reglas de Composición del Completo</CardTitle>
                   <CardDescription>
-                    Define which categories and how many products make a Completo
+                    Define qué categorías y cuántos productos forman un Completo
                   </CardDescription>
                 </div>
                 <Button onClick={handleAddRule} size="sm">
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Rule
+                  Agregar Regla
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {settings.completoRules.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  <p>No rules configured. Add a rule to start generating Completos.</p>
-                  <p className="text-sm mt-2">Example: 1 Sopa + 1 Segundo = Completo</p>
+                  <p>No hay reglas configuradas. Agrega una regla para comenzar a generar Completos.</p>
+                  <p className="text-sm mt-2">Ejemplo: 1 Sopa + 1 Segundo = Completo</p>
                 </div>
               ) : (
                 settings.completoRules
@@ -328,13 +328,13 @@ export function SettingsPage() {
 
                       <div className="flex-1 grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label className="text-xs">Category</Label>
+                          <Label className="text-xs">Categoría</Label>
                           <Select
                             value={rule.categoryId}
                             onValueChange={(value) => handleRuleChange(index, 'categoryId', value)}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select category" />
+                              <SelectValue placeholder="Selecciona una categoría" />
                             </SelectTrigger>
                             <SelectContent>
                               {categories.map((category) => (
@@ -347,7 +347,7 @@ export function SettingsPage() {
                         </div>
 
                         <div className="space-y-2">
-                          <Label className="text-xs">Quantity</Label>
+                          <Label className="text-xs">Cantidad</Label>
                           <Input
                             type="number"
                             min="1"
@@ -370,7 +370,7 @@ export function SettingsPage() {
 
               {settings.completoRules.length > 0 && (
                 <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                  <h4 className="font-semibold mb-2">Formula Preview:</h4>
+                  <h4 className="font-semibold mb-2">Vista Previa de la Fórmula:</h4>
                   <p className="text-sm">
                     {settings.completoRules
                       .sort((a, b) => a.order - b.order)
@@ -379,7 +379,7 @@ export function SettingsPage() {
                     {' = Completo'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    All combinations will be generated at {settings.currencySymbol}{settings.completoPrice.toFixed(2)} each
+                    Todas las combinaciones se generarán a {settings.currencySymbol}{settings.completoPrice.toFixed(2)} cada una
                   </p>
                 </div>
               )}
@@ -390,7 +390,7 @@ export function SettingsPage() {
           <div className="flex justify-end">
             <Button onClick={handleSave} disabled={saving} size="lg">
               <Save className="mr-2 h-4 w-4" />
-              {saving ? 'Saving...' : 'Save Settings'}
+              {saving ? 'Guardando...' : 'Guardar Configuración'}
             </Button>
           </div>
         </>

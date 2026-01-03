@@ -19,7 +19,7 @@ export const LoginPage = () => {
     setError('');
 
     if (!username || !password) {
-      setError('Please enter both username and password');
+      setError('Por favor ingresa nombre de usuario y contraseña');
       return;
     }
 
@@ -27,7 +27,7 @@ export const LoginPage = () => {
       await login(username, password);
       // Navigation will be handled by App.tsx based on auth state
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Invalid username or password');
+      setError(err.response?.data?.error?.message || 'Nombre de usuario o contraseña inválidos');
     }
   };
 
@@ -42,7 +42,7 @@ export const LoginPage = () => {
             Restaurant Manager
           </CardTitle>
           <CardDescription className="text-sm text-gray-600 dark:text-gray-400">
-            Sign in to manage your restaurant operations
+            Inicia sesión para gestionar las operaciones de tu restaurante
           </CardDescription>
         </CardHeader>
         
@@ -56,12 +56,12 @@ export const LoginPage = () => {
 
             <div className="space-y-2">
               <Label htmlFor="username" className="text-sm font-medium">
-                Username
+                Usuario
               </Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Enter your username"
+                placeholder="Ingresa tu nombre de usuario"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={isLoading}
@@ -74,13 +74,13 @@ export const LoginPage = () => {
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium">
-                Password
+                Contraseña
               </Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder="Ingresa tu contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={isLoading}
@@ -93,7 +93,7 @@ export const LoginPage = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                   tabIndex={-1}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -112,12 +112,12 @@ export const LoginPage = () => {
               {isLoading ? (
                 <>
                   <span className="login-spinner">⏳</span>
-                  <span>Signing in...</span>
+                  <span>Iniciando sesión...</span>
                 </>
               ) : (
                 <>
                   <LogIn className="w-4 h-4" />
-                  <span>Sign In</span>
+                  <span>Iniciar Sesión</span>
                 </>
               )}
             </button>
