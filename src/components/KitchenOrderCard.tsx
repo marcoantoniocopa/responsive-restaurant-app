@@ -71,14 +71,12 @@ export function KitchenOrderCard({
     });
   };
 
-  // Determine which time to display
-  // For Llevar Web (orderType = 3) with status Reserva (status = 1), show pickupTime
-  // Otherwise show timestamp (order creation time)
+  // Display pickup time if available
   const getDisplayTime = () => {
-    if (order.orderType === 3 && order.status === 1 && order.pickupTime) {
+    if (order.pickupTime) {
       return formatTime(new Date(order.pickupTime));
     }
-    return formatTime(order.timestamp);
+    return null;
   };
 
   // Get available next statuses based on current status
@@ -105,8 +103,8 @@ export function KitchenOrderCard({
 
   // Get urgency level based on wait time
   const getUrgencyStyle = () => {
-    // Don't apply urgency styling for Llevar Web orders with status Reserva
-    if (order.orderType === 3 && order.status === 1) {
+    // Only apply urgency styling for orderType 1 and 2
+    if (order.orderType !== 1 && order.orderType !== 2) {
       return "kitchen-card-normal";
     }
     
@@ -161,9 +159,13 @@ export function KitchenOrderCard({
             {order.customerName}
           </span>
           <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-            <Clock className="h-2.5 w-2.5" />
-            <span>{getDisplayTime()}</span>
-            {waitTime > 0 && !(order.orderType === 3 && order.status === 1) && (
+            {getDisplayTime() && (
+              <>
+                <Clock className="h-2.5 w-2.5" />
+                <span>{getDisplayTime()}</span>
+              </>
+            )}
+            {waitTime > 0 && (order.orderType === 1 || order.orderType === 2) && (
               <Badge 
                 variant={waitTime > 15 ? "destructive" : "outline"} 
                 className="text-[8px] px-1 py-0"
@@ -257,7 +259,7 @@ export function KitchenOrderCard({
         </AlertDialog>
 
         {/* Order Detail Modal */}
-        <Dialog open={isDetailModalOpen} onOpenChange={(open) => !open && onCloseDetailModal?.()}>
+        <Dialog open={isDetailModalOpen} onOpenChange={(open: boolean) => !open && onCloseDetailModal?.()}>
           <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center justify-between">
@@ -273,10 +275,12 @@ export function KitchenOrderCard({
               </div>
               <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
                 <span className="font-medium">{order.customerName}</span>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  <span>{getDisplayTime()}</span>
-                </div>
+                {getDisplayTime() && (
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>{getDisplayTime()}</span>
+                  </div>
+                )}
               </div>
               {/* Observation */}
               {order.observation && (

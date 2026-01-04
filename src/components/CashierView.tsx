@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { OrderCard, Order } from "./OrderCard";
-import { CashierOrderForm } from "./CashierOrderForm";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
@@ -17,10 +17,10 @@ interface CashierViewProps {}
 const ORDERS_PER_PAGE = 20;
 
 export function CashierView({}: CashierViewProps) {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [totalOrders, setTotalOrders] = useState(0);
   const [selectedTab, setSelectedTab] = useState<number | "all">("all");
-  const [showOrderForm, setShowOrderForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [detailModalOrderId, setDetailModalOrderId] = useState<string | null>(null);
@@ -118,6 +118,8 @@ export function CashierView({}: CashierViewProps) {
         orderNumber: order.orderNumber,
         customerName: order.customerName,
         tableNumber: order.tableNumber,
+        observation: order.observation,
+        pickupTime: order.pickupTime ? new Date(order.pickupTime) : undefined,
         items: order.items.map((item: any) => ({
           name: item.productName,
           quantity: item.quantity,
@@ -190,10 +192,8 @@ export function CashierView({}: CashierViewProps) {
     }
   };
 
-  const handleOrderSubmit = async () => {
-    // Order form handles submission directly
-    // Just refresh the orders list after modal closes
-    await fetchOrders(false);
+  const handleNewOrder = () => {
+    navigate("/caja/nuevo-pedido");
   };
 
   // Get total count based on current filter
@@ -243,7 +243,7 @@ export function CashierView({}: CashierViewProps) {
       <div className="flex items-center justify-between">
         <h2>Panel de Caja</h2>
         <div className="flex gap-2">
-          <Button onClick={() => setShowOrderForm(true)} size="sm">
+          <Button onClick={handleNewOrder} size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Pedido
           </Button>
@@ -276,7 +276,7 @@ export function CashierView({}: CashierViewProps) {
             <div className="flex items-center justify-center mb-2">
               <Clock className="h-5 w-5 text-yellow-600" />
             </div>
-            <p className="text-2xl">{stats.pending + stats.preparing}</p>
+            <p className="text-2xl">{stats.preparing}</p>
             <p className="text-sm text-muted-foreground">En Proceso</p>
           </CardContent>
         </Card>
@@ -419,17 +419,6 @@ export function CashierView({}: CashierViewProps) {
         <div className="text-center py-12">
           <p className="text-muted-foreground">No hay pedidos disponibles</p>
         </div>
-      )}
-
-      {/* Order Form Modal */}
-      {showOrderForm && (
-        <CashierOrderForm
-          onOrderSubmit={handleOrderSubmit}
-          onClose={() => {
-            setShowOrderForm(false);
-            handleRefresh();
-          }}
-        />
       )}
     </div>
   );

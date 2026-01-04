@@ -5,7 +5,7 @@
   position: fixed;
   bottom: 0;
   right: 0;
-  z-index: 100;
+  z-index: 99999;
   display: flex;
   max-height: 100vh;
   width: 100%;
@@ -30,34 +30,37 @@
   padding: 0.75rem 1rem;
   padding-right: 2rem;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  background-color: hsl(var(--background));
+  background-color: #ffffff;
   color: hsl(var(--foreground));
   font-size: 0.875rem;
 }
 
-/* Success Toast - Green border */
+/* Success Toast - Green border and title */
 .toast-success {
   border-color: #16a34a;
-  background-color: hsl(var(--background));
+  background-color: #ffffff;
 }
 
 .toast-success .toast-title {
   color: #16a34a;
+  font-weight: 600;
 }
 
-/* Error/Destructive Toast - Red border */
+/* Error/Destructive Toast - Red border and title */
 .toast-error {
   border-color: #dc2626;
-  background-color: hsl(var(--background));
+  background-color: #ffffff;
 }
 
 .toast-error .toast-title {
   color: #dc2626;
+  font-weight: 600;
 }
 
 /* Default Toast - Subtle border */
 .toast-default {
   border-color: hsl(var(--border));
+  background-color: #ffffff;
 }
 
 /* Toast Title */

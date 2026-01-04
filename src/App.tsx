@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleProtectedRoute } from "./components/RoleProtectedRoute";
 import { PedidosPage } from "./pages/PedidosPage";
 import { CajaPage } from "./pages/CajaPage";
+import { NewOrderPage } from "./pages/NewOrderPage";
 import { CocinaPage } from "./pages/CocinaPage";
 import { ProductsPage } from "./pages/ProductsPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
@@ -162,6 +163,16 @@ function AppContent() {
             element={
               <RoleProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.CASHIER]}>
                 <CajaPage />
+              </RoleProtectedRoute>
+            }
+          />
+          
+          {/* New Order - Admin and Cashier only */}
+          <Route
+            path="/caja/nuevo-pedido"
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.CASHIER]}>
+                <NewOrderPage />
               </RoleProtectedRoute>
             }
           />

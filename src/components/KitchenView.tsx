@@ -136,6 +136,7 @@ export function KitchenView({}: KitchenViewProps) {
 
       // Show toast notification
       toast({
+        variant: "success",
         title: "🔔 Nuevo Pedido",
         description: `Pedido #${order.orderNumber} - ${order.customerName || 'Cliente'}`,
         duration: 5000,
@@ -154,6 +155,7 @@ export function KitchenView({}: KitchenViewProps) {
 
       // Show toast notification
       toast({
+        variant: "destructive",
         title: "❌ Pedido Cancelado",
         description: `Pedido #${data.orderNumber} ha sido cancelado`,
         duration: 5000,
@@ -180,6 +182,7 @@ export function KitchenView({}: KitchenViewProps) {
 
       // Show toast notification
       toast({
+        variant: "success",
         title: "🔄 Estado Actualizado",
         description: `Pedido #${order.orderNumber} - ${getOrderStatusName(order.currentStatus)}`,
         duration: 3000,

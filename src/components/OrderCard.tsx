@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Clock, CheckCircle, XCircle, ChevronDown } from "lucide-react";
+import { Clock, CheckCircle, XCircle, ChevronDown, X } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { Currency } from "./Currency";
 import { useConfig } from "../contexts/ConfigContext";
@@ -31,6 +31,8 @@ export interface Order {
   orderNumber?: string;
   customerName: string;
   tableNumber?: string;
+  observation?: string;
+  pickupTime?: Date;
   items: Array<{
     name: string;
     quantity: number;
@@ -95,6 +97,27 @@ export function OrderCard({
     }
   };
 
+  const handleDoubleClick = () => {
+    if (onOpenDetailModal) {
+      onOpenDetailModal(order.id);
+    }
+  };
+
+  // Keyboard shortcuts for detail modal
+  useEffect(() => {
+    if (!isDetailModalOpen) return;
+
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && onCloseDetailModal) {
+        e.preventDefault();
+        onCloseDetailModal();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [isDetailModalOpen, onCloseDetailModal]);
+
   // Render items list (reusable for card and modal)
   const renderItems = (items: Order['items'], isModal = false) => (
     <div className="space-y-2">
@@ -119,7 +142,11 @@ export function OrderCard({
   );
 
   return (
-    <Card className={`w-full ${compact ? 'mb-2' : 'mb-4'}`}>
+    <>
+    <Card 
+      className={`w-full ${compact ? 'mb-2' : 'mb-4'} cursor-pointer`}
+      onDoubleClick={handleDoubleClick}
+    >
       <CardHeader className={`pb-3 ${compact ? 'py-3' : ''}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -227,38 +254,86 @@ export function OrderCard({
 
         {/* Order Detail Modal */}
         <Dialog open={isDetailModalOpen} onOpenChange={(open) => !open && onCloseDetailModal?.()}>
-          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+            <button
+              onClick={onCloseDetailModal}
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </button>
+            
             <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span>Pedido #{order.orderNumber || order.id}</span>
-                  <Badge variant="secondary" className="text-xs">
-                    {getOrderTypeName(order.orderType)}
-                  </Badge>
-                </div>
+              <DialogTitle className="flex items-center gap-2 pr-8">
+                <span className="text-xl">Pedido #{order.orderNumber || order.id}</span>
+                <Badge variant="secondary" className="text-xs">
+                  {getOrderTypeName(order.orderType)}
+                </Badge>
               </DialogTitle>
-              <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
-                <span>{order.customerName}</span>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-3 w-3" />
-                  <span>{formatTime(order.timestamp)}</span>
-                </div>
-              </div>
-              <div className="pt-1">
-                <StatusBadge statusId={order.status} />
-              </div>
             </DialogHeader>
             
-            <div className="py-4">
-              <h4 className="text-sm font-semibold mb-3">Productos ({order.items.length})</h4>
-              {renderItems(order.items, true)}
-            </div>
-            
-            <div className="flex justify-between items-center border-t pt-4">
-              <span className="text-lg font-semibold">Total:</span>
-              <span className="text-lg font-bold text-primary">
-                <Currency amount={order.total} large />
-              </span>
+            <div className="space-y-4">
+              {/* Customer and Order Info */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Cliente</p>
+                  <p className="font-medium">{order.customerName}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Estado</p>
+                  <div className="mt-1">
+                    <StatusBadge statusId={order.status} />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Hora de Pedido</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Clock className="h-3 w-3" />
+                    <span className="font-medium">{formatTime(order.timestamp)}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Método de Pago</p>
+                  <p className="font-medium">{getPaymentMethodName(order.paymentMethod)}</p>
+                </div>
+              </div>
+
+              {/* Pickup Time */}
+              {order.pickupTime && (
+                <div className="bg-muted/50 p-3 rounded-md">
+                  <p className="text-xs text-muted-foreground mb-1">Hora de Recojo</p>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span className="font-semibold text-primary">
+                      {formatTime(order.pickupTime)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Observation */}
+              {order.observation && (
+                <div className="bg-muted/50 p-3 rounded-md">
+                  <p className="text-xs text-muted-foreground mb-1">Observaciones</p>
+                  <p className="text-sm italic">{order.observation}</p>
+                </div>
+              )}
+
+              {/* Products */}
+              <div>
+                <h4 className="text-sm font-semibold mb-3">Productos ({order.items.length})</h4>
+                <div className="bg-muted/30 rounded-lg p-3">
+                  {renderItems(order.items, true)}
+                </div>
+              </div>
+              
+              {/* Total */}
+              <div className="flex justify-between items-center border-t pt-4">
+                <span className="text-lg font-semibold">Total:</span>
+                <span className="text-xl font-bold text-primary">
+                  <Currency amount={order.total} large />
+                </span>
+              </div>
             </div>
 
             {/* Actions in modal */}
@@ -307,5 +382,6 @@ export function OrderCard({
         </Dialog>
       </CardContent>
     </Card>
+    </>
   );
 }

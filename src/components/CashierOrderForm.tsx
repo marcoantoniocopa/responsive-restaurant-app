@@ -46,6 +46,7 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
   const [orderType, setOrderType] = useState<"takeaway" | "dinein">("dinein");
   const [observation, setObservation] = useState("");
   const [pickupTimeSlot, setPickupTimeSlot] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<number>(1); // 1 = Cash, 2 = QR
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -224,7 +225,7 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
         customerName: orderType === "takeaway" ? customerName.trim() : `Mesa ${tableNumber}`,
         tableNumber: orderType === "dinein" ? tableNumber?.toString() : undefined,
       items: orderItems,
-        paymentMethod: 1,  // 1 = Efectivo (default for cashier orders)
+        paymentMethod: paymentMethod,  // 1 = Efectivo, 2 = QR
         orderType: orderType === "takeaway" ? 1 : 2,  // 1 = Llevar, 2 = En Local
         isReservation: false,
         observation: observation.trim() || undefined,
@@ -284,6 +285,25 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
                 <div className="radio-option">
                   <RadioGroupItem value="takeaway" id="takeaway" />
                   <Label htmlFor="takeaway">Para llevar</Label>
+                </div>
+              </RadioGroup>
+            </CardContent>
+          </Card>
+
+          {/* Payment Method Selection */}
+          <Card>
+            <CardHeader>
+              <h3>Método de Pago</h3>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup value={paymentMethod.toString()} onValueChange={(value) => setPaymentMethod(parseInt(value))} className="radio-group">
+                <div className="radio-option">
+                  <RadioGroupItem value="1" id="payment-cash" />
+                  <Label htmlFor="payment-cash">Efectivo</Label>
+                </div>
+                <div className="radio-option">
+                  <RadioGroupItem value="2" id="payment-qr" />
+                  <Label htmlFor="payment-qr">QR</Label>
                 </div>
               </RadioGroup>
             </CardContent>

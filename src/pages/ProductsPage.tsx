@@ -33,7 +33,7 @@ import { ProductForm } from '../components/ProductForm';
 import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight, RefreshCw, Search, X } from 'lucide-react';
 import { useToast } from '../hooks/use-toast';
 import { Currency } from '../components/Currency';
-import '../styles/search-input.css';
+import '../styles/products.css';
 
 interface Category {
   _id: string;
@@ -227,24 +227,28 @@ export function ProductsPage() {
         </CardHeader>
         <CardContent>
           {/* Search Bar */}
-          <div className="search-container">
-            <Search className="search-icon" />
-            <input
-              type="text"
-              placeholder="Buscar productos por nombre, descripción o categoría..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="search-clear-button"
-                aria-label="Clear search"
-              >
-                <X className="search-clear-icon" />
-              </button>
-            )}
+          <div className="search-wrapper">
+            <div className="search-input-container">
+              <div className="search-icon-wrapper">
+                <Search className="h-4 w-4" />
+              </div>
+              <input
+                type="text"
+                placeholder="Buscar productos por nombre, descripción o categoría..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-field"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="search-clear-btn"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
             {searchQuery && (
               <p className="search-results-text">
                 Mostrando {filteredProducts.length} de {products.length} productos
@@ -299,14 +303,14 @@ export function ProductsPage() {
                   </div>
                 ) : (
                   <div className="rounded-md border">
-                    <Table>
+                    <Table className="products-table">
                       <TableHeader>
                       <TableRow>
                         <TableHead>Nombre</TableHead>
                         <TableHead>Descripción</TableHead>
-                        <TableHead className="text-right">Precio</TableHead>
-                        <TableHead className="text-center">Estado</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
+                        <TableHead data-align="right">Precio</TableHead>
+                        <TableHead data-align="center">Estado</TableHead>
+                        <TableHead data-align="center">Acciones</TableHead>
                       </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -326,10 +330,12 @@ export function ProductsPage() {
                                 <span className="text-muted-foreground italic">Combo generado</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-right font-semibold">
-                              <Currency amount={product.sellPrice} />
+                            <TableCell data-align="right">
+                              <span className="products-price">
+                                <Currency amount={product.sellPrice} />
+                              </span>
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell data-align="center">
                               {product.isVirtual ? (
                                 <Badge variant="outline">Auto</Badge>
                               ) : (
@@ -338,15 +344,15 @@ export function ProductsPage() {
                                 </Badge>
                               )}
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell data-align="center">
                               {product.isVirtual ? (
-                                <div className="flex justify-end">
+                                <div className="products-actions">
                                   <span className="text-xs text-muted-foreground italic">
                                     Gestionado en Configuración
                                   </span>
                                 </div>
                               ) : (
-                                <div className="flex justify-end gap-2">
+                                <div className="products-actions">
                                   <Button
                                     variant="ghost"
                                     size="sm"

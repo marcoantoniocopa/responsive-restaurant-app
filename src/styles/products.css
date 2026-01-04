@@ -1,0 +1,151 @@
+/* Products Page Styles */
+
+/* Table column widths */
+.products-table th:nth-child(1),
+.products-table td:nth-child(1) {
+  width: 15%;
+}
+
+.products-table th:nth-child(2),
+.products-table td:nth-child(2) {
+  width: 30%;
+}
+
+.products-table th:nth-child(3),
+.products-table td:nth-child(3) {
+  width: 15%;
+  padding-right: 2rem;
+}
+
+.products-table th:nth-child(4),
+.products-table td:nth-child(4) {
+  width: 12%;
+  padding-left: 0.5rem;
+  padding-right: 1rem;
+}
+
+.products-table th:nth-child(5),
+.products-table td:nth-child(5) {
+  width: 28%;
+  padding-left: 0.5rem;
+}
+
+/* Table alignment fixes */
+.products-table th[data-align="right"],
+.products-table td[data-align="right"] {
+  text-align: right;
+}
+
+.products-table th[data-align="center"],
+.products-table td[data-align="center"] {
+  text-align: center;
+}
+
+.products-table td[data-align="right"] {
+  vertical-align: middle;
+}
+
+.products-table td[data-align="right"] > * {
+  justify-content: flex-end;
+  display: flex;
+}
+
+.products-table td[data-align="center"] {
+  vertical-align: middle;
+}
+
+.products-table td[data-align="center"] > * {
+  justify-content: center;
+  display: inline-flex;
+  width: 100%;
+}
+
+/* Ensure action buttons are centered */
+.products-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Price cell alignment */
+.products-price {
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Search Input Styling */
+.search-wrapper {
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  height: 2.75rem;
+}
+
+.search-input-container:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 1rem;
+  padding-right: 0.75rem;
+  color: #9ca3af;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.search-field {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0.625rem 0.5rem;
+  font-size: 0.875rem;
+  color: #111827;
+  min-width: 0;
+}
+
+.search-field::placeholder {
+  color: #9ca3af;
+}
+
+.search-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  margin-right: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  border-radius: 0.375rem;
+  flex-shrink: 0;
+}
+
+.search-clear-btn:hover {
+  color: #374151;
+  background-color: #f3f4f6;
+}
+
+.search-results-text {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
