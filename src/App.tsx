@@ -11,6 +11,7 @@ import { ProductsPage } from "./pages/ProductsPage";
 import { CategoriesPage } from "./pages/CategoriesPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { ContablePage } from "./pages/ContablePage";
+import { MenuDiarioPage } from "./pages/MenuDiarioPage";
 import { Order } from "./components/OrderCard";
 import { toast } from "sonner@2.0.3";
 import { Toaster } from "./components/ui/toaster";
@@ -223,6 +224,16 @@ function AppContent() {
             element={
               <RoleProtectedRoute allowedRoles={[ROLES.ADMIN]}>
                 <ContablePage />
+              </RoleProtectedRoute>
+            }
+          />
+          
+          {/* Menu Diario - Admin and Cashier */}
+          <Route
+            path="/menu-diario"
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.CASHIER]}>
+                <MenuDiarioPage />
               </RoleProtectedRoute>
             }
           />

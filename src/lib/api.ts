@@ -303,6 +303,64 @@ class ApiClient {
     const response = await this.client.put('/settings', settingsData);
     return response.data.data;
   }
+
+  // Daily Menu endpoints
+  async getDailyMenus() {
+    const response = await this.client.get('/daily-menus');
+    return response.data;
+  }
+
+  async getUpcomingDailyMenus() {
+    const response = await this.client.get('/daily-menus/upcoming');
+    return response.data;
+  }
+
+  async getDailyMenuCategories() {
+    const response = await this.client.get('/daily-menus/categories');
+    return response.data;
+  }
+
+  async getDailyMenuGuarniciones() {
+    const response = await this.client.get('/daily-menus/guarniciones');
+    return response.data;
+  }
+
+  async getActiveMenuForToday() {
+    const response = await this.client.get('/daily-menus/today');
+    return response.data;
+  }
+
+  async getDailyMenuById(id: string) {
+    const response = await this.client.get(`/daily-menus/${id}`);
+    return response.data;
+  }
+
+  async getDailyMenuByDate(date: string) {
+    const response = await this.client.get(`/daily-menus/date/${date}`);
+    return response.data;
+  }
+
+  async createDailyMenu(menuData: any) {
+    const response = await this.client.post('/daily-menus', menuData);
+    return response.data;
+  }
+
+  async updateDailyMenu(id: string, menuData: any) {
+    const response = await this.client.put(`/daily-menus/${id}`, menuData);
+    return response.data;
+  }
+
+  async toggleDailyMenuEnabled(id: string) {
+    const response = await this.client.patch(`/daily-menus/${id}/toggle`);
+    return response.data;
+  }
+
+  async deleteDailyMenu(id: string, reason?: string) {
+    const response = await this.client.delete(`/daily-menus/${id}`, {
+      data: { reason }
+    });
+    return response.data;
+  }
 }
 
 export const apiClient = new ApiClient();

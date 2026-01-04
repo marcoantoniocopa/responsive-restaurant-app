@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Button } from "./ui/button";
-import { ShoppingBag, Users, ChefHat, LogOut, Menu, Package, FolderTree, Settings, BarChart3 } from "lucide-react";
+import { ShoppingBag, Users, ChefHat, LogOut, Menu, Package, FolderTree, Settings, BarChart3, CalendarDays } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import {
   DropdownMenu,
@@ -74,6 +74,12 @@ export function Navigation() {
       label: 'Categorías',
       icon: FolderTree,
       show: hasRole('admin'),
+    },
+    {
+      path: '/menu-diario',
+      label: 'Menú Diario',
+      icon: CalendarDays,
+      show: hasRole('admin') || hasRole('cashier'),
     },
     {
       path: '/contable',
