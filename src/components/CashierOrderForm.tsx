@@ -99,12 +99,15 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
           : [];
         
         // Sort categories: Completo first, then others alphabetically
+        // Filter out Guarniciones category (not shown in order creation)
         const sortedCategories = Array.isArray(categoriesData)
-          ? [...categoriesData].sort((a, b) => {
-              if (a.name === "Completo") return -1;
-              if (b.name === "Completo") return 1;
-              return a.name.localeCompare(b.name);
-            })
+          ? [...categoriesData]
+              .filter((c: Category) => c.name !== "Guarniciones")
+              .sort((a, b) => {
+                if (a.name === "Completo") return -1;
+                if (b.name === "Completo") return 1;
+                return a.name.localeCompare(b.name);
+              })
           : [];
         
         setProducts(availableProducts);

@@ -315,6 +315,16 @@ class ApiClient {
     return response.data;
   }
 
+  async getPaginatedDailyMenus(params: {
+    page?: number;
+    limit?: number;
+    sortOrder?: 'asc' | 'desc';
+    status?: 'all' | 'past' | 'enabled' | 'disabled';
+  }) {
+    const response = await this.client.get('/daily-menus/paginated', { params });
+    return response.data;
+  }
+
   async getDailyMenuCategories() {
     const response = await this.client.get('/daily-menus/categories');
     return response.data;
@@ -359,6 +369,11 @@ class ApiClient {
     const response = await this.client.delete(`/daily-menus/${id}`, {
       data: { reason }
     });
+    return response.data;
+  }
+
+  async applyTodaysMenu() {
+    const response = await this.client.post('/daily-menus/apply-today');
     return response.data;
   }
 }

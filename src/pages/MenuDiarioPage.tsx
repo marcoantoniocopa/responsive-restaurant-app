@@ -3,7 +3,14 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
 import { apiClient } from '../lib/api';
-import { Plus, Calendar, Check, X, Edit2, Trash2, ChevronLeft, Loader2, AlertCircle } from 'lucide-react';
+import { Plus, Calendar, Check, X, Edit2, Trash2, ChevronLeft, ChevronRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -100,6 +107,15 @@ export function MenuDiarioPage() {
   // Guarniciones per segundo: { segundoProductId: guarnicionIds[] }
   const [segundoGuarniciones, setSegundoGuarniciones] = useState<Record<string, string[]>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+
+  // Pagination and filter state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'past' | 'enabled' | 'disabled'>('enabled');
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Get today's date in YYYY-MM-DD format
   const getTodayString = () => {
@@ -143,24 +159,58 @@ export function MenuDiarioPage() {
   };
 
   // Fetch data
-  const fetchData = async () => {
-    setIsLoading(true);
+  // Fetch menus with pagination
+  const fetchMenus = async (page = currentPage, limit = pageSize, order = sortOrder, status = statusFilter) => {
     try {
-      const [menusResponse, categoriesResponse, guarnicionesResponse] = await Promise.all([
-        apiClient.getUpcomingDailyMenus(),
+      const response = await apiClient.getPaginatedDailyMenus({
+        page,
+        limit,
+        sortOrder: order,
+        status
+      });
+
+      setMenus(response.data || []);
+      if (response.pagination) {
+        setTotalPages(response.pagination.totalPages);
+        setTotalItems(response.pagination.total);
+        setCurrentPage(response.pagination.page);
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudieron cargar los menús'
+      });
+    }
+  };
+
+  // Fetch categories and guarniciones (only once)
+  const fetchFormData = async () => {
+    try {
+      const [categoriesResponse, guarnicionesResponse] = await Promise.all([
         apiClient.getDailyMenuCategories(),
         apiClient.getDailyMenuGuarniciones()
       ]);
 
-      setMenus(menusResponse.data || []);
       setCategories(categoriesResponse.data || []);
       setGuarnicionesProducts(guarnicionesResponse.data || []);
     } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'No se pudieron cargar los datos'
+        description: 'No se pudieron cargar los datos del formulario'
       });
+    }
+  };
+
+  // Initial data fetch
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      await Promise.all([
+        fetchMenus(1, pageSize, sortOrder, statusFilter),
+        fetchFormData()
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -169,6 +219,13 @@ export function MenuDiarioPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Refetch menus when pagination/filters change
+  useEffect(() => {
+    if (!isLoading) {
+      fetchMenus(currentPage, pageSize, sortOrder, statusFilter);
+    }
+  }, [currentPage, pageSize, sortOrder, statusFilter]);
 
   // Reset form
   const resetForm = () => {
@@ -358,12 +415,12 @@ export function MenuDiarioPage() {
 
       resetForm();
       setShowGuarnicionesModal(false);
-      await fetchData();
+      await fetchMenus();
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.message || 'No se pudo guardar el menú'
+        description: error.response?.data?.error?.message || error.response?.data?.message || 'No se pudo guardar el menú'
       });
     } finally {
       setIsSaving(false);
@@ -379,12 +436,12 @@ export function MenuDiarioPage() {
         title: 'Estado actualizado',
         description: 'El estado del menú ha sido actualizado'
       });
-      await fetchData();
+      await fetchMenus();
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.message || 'No se pudo actualizar el estado'
+        description: error.response?.data?.error?.message || error.response?.data?.message || 'No se pudo actualizar el estado'
       });
     }
   };
@@ -401,13 +458,34 @@ export function MenuDiarioPage() {
         description: 'Menú eliminado correctamente'
       });
       setShowDeleteDialog(null);
-      await fetchData();
+      await fetchMenus();
     } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: error.response?.data?.message || 'No se pudo eliminar el menú'
+        description: error.response?.data?.error?.message || error.response?.data?.message || 'No se pudo eliminar el menú'
       });
+    }
+  };
+
+  // Apply today's menu manually
+  const handleApplyTodaysMenu = async () => {
+    setIsApplying(true);
+    try {
+      const result = await apiClient.applyTodaysMenu();
+      toast({
+        variant: 'success',
+        title: 'Menú Aplicado',
+        description: result.message
+      });
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response?.data?.error?.message || error.response?.data?.message || 'No se pudo aplicar el menú'
+      });
+    } finally {
+      setIsApplying(false);
     }
   };
 
@@ -639,10 +717,77 @@ export function MenuDiarioPage() {
             Administra los menús disponibles por día
           </p>
         </div>
-        <Button onClick={handleStartCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Menú
-        </Button>
+        <div className="menu-diario-header-actions">
+          <Button 
+            variant="outline" 
+            onClick={handleApplyTodaysMenu}
+            disabled={isApplying}
+          >
+            {isApplying ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Aplicando...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Aplicar Menú de Hoy
+              </>
+            )}
+          </Button>
+          <Button onClick={handleStartCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Menú
+          </Button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="menu-filters">
+        <div className="menu-filters-left">
+          <div className="filter-group">
+            <label className="filter-label">Estado</label>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as any); setCurrentPage(1); }}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="enabled">Habilitados</SelectItem>
+                <SelectItem value="disabled">Deshabilitados</SelectItem>
+                <SelectItem value="past">Pasados</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Orden</label>
+            <Select value={sortOrder} onValueChange={(v) => { setSortOrder(v as 'asc' | 'desc'); setCurrentPage(1); }}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="desc">Más reciente</SelectItem>
+                <SelectItem value="asc">Más antiguo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">Por página</label>
+            <Select value={pageSize.toString()} onValueChange={(v) => { setPageSize(parseInt(v)); setCurrentPage(1); }}>
+              <SelectTrigger className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="menu-filters-right">
+          <span className="total-items">{totalItems} menú(s) encontrado(s)</span>
+        </div>
       </div>
 
       {menus.length === 0 ? (
@@ -650,11 +795,17 @@ export function MenuDiarioPage() {
           <Calendar className="empty-state-icon" />
           <h3 className="empty-state-title">No hay menús configurados</h3>
           <p className="empty-state-description">
-            Crea un nuevo menú diario para configurar los productos disponibles
+            {statusFilter === 'enabled' 
+              ? 'No hay menús habilitados. Crea uno nuevo o cambia el filtro.'
+              : statusFilter === 'disabled'
+              ? 'No hay menús deshabilitados.'
+              : statusFilter === 'past'
+              ? 'No hay menús pasados.'
+              : 'No hay menús configurados. Crea uno nuevo.'}
           </p>
           <Button onClick={handleStartCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Crear Primer Menú
+            Crear Nuevo Menú
           </Button>
         </div>
       ) : (
@@ -765,6 +916,33 @@ export function MenuDiarioPage() {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="pagination-controls">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </Button>
+          <span className="pagination-info">
+            Página {currentPage} de {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Siguiente
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       )}
 
