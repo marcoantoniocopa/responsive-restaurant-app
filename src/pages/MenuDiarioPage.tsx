@@ -48,6 +48,7 @@ interface SegundoGuarniciones {
   segundoProductId: string;
   segundoProductName: string;
   guarniciones: Array<{ _id: string; name: string }> | string[];
+  availablePlates: number | null;
 }
 
 interface CategorySelection {
@@ -100,12 +101,15 @@ export function MenuDiarioPage() {
   const [showGuarnicionesModal, setShowGuarnicionesModal] = useState(false);
   const [currentSegundoForGuarniciones, setCurrentSegundoForGuarniciones] = useState<{id: string; name: string} | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState<string | null>(null);
+  const [showPlatesModal, setShowPlatesModal] = useState(false);
   
   // Form state
   const [selectedDate, setSelectedDate] = useState('');
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   // Guarniciones per segundo: { segundoProductId: guarnicionIds[] }
   const [segundoGuarniciones, setSegundoGuarniciones] = useState<Record<string, string[]>>({});
+  // Available plates per segundo: { segundoProductId: plateCount }
+  const [segundoPlates, setSegundoPlates] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
 
@@ -232,8 +236,10 @@ export function MenuDiarioPage() {
     setSelectedDate('');
     setSelections({});
     setSegundoGuarniciones({});
+    setSegundoPlates({});
     setCurrentSegundoForGuarniciones(null);
     setShowGuarnicionesModal(false);
+    setShowPlatesModal(false);
     setIsCreating(false);
     setIsEditing(null);
   };
@@ -285,6 +291,14 @@ export function MenuDiarioPage() {
       guarnicionesMap[sg.segundoProductId] = guarnicionIds;
     });
     setSegundoGuarniciones(guarnicionesMap);
+    
+    const platesMap: Record<string, string> = {};
+    (menu.segundoGuarniciones || []).forEach(sg => {
+      if (sg.availablePlates != null) {
+        platesMap[sg.segundoProductId] = sg.availablePlates.toString();
+      }
+    });
+    setSegundoPlates(platesMap);
     setIsCreating(true);
   };
 
@@ -358,12 +372,20 @@ export function MenuDiarioPage() {
       return;
     }
 
-    // If segundos have no guarniciones, show modal for first one without
+    // If segundos have no guarniciones, show guarniciones modal for first one
     const selectedSegundos = getSelectedSegundos();
     const segundoWithoutGuarniciones = selectedSegundos.find(s => (segundoGuarniciones[s.id] || []).length === 0);
     if (segundoWithoutGuarniciones) {
       setCurrentSegundoForGuarniciones(segundoWithoutGuarniciones);
       setShowGuarnicionesModal(true);
+      return;
+    }
+
+    // If segundos have no plates set, show plates modal for first one
+    const segundoWithoutPlates = selectedSegundos.find(s => !segundoPlates[s.id] || parseInt(segundoPlates[s.id], 10) <= 0);
+    if (segundoWithoutPlates) {
+      setCurrentSegundoForGuarniciones(segundoWithoutPlates);
+      setShowPlatesModal(true);
       return;
     }
 
@@ -380,12 +402,13 @@ export function MenuDiarioPage() {
         selectedProducts: selections[cat.categoryId] || []
       })).filter(cs => cs.selectedProducts.length > 0);
 
-      // Build segundoGuarniciones array
+      // Build segundoGuarniciones array with plates per segundo
       const selectedSegundos = getSelectedSegundos();
       const segundoGuarnicionesArray = selectedSegundos.map(s => ({
         segundoProductId: s.id,
         segundoProductName: s.name,
-        guarniciones: segundoGuarniciones[s.id] || []
+        guarniciones: segundoGuarniciones[s.id] || [],
+        availablePlates: segundoPlates[s.id] ? parseInt(segundoPlates[s.id], 10) : null
       })).filter(sg => sg.guarniciones.length > 0);
 
       // Create date at UTC midnight (YYYY-MM-DDT00:00:00.000Z)
@@ -607,6 +630,11 @@ export function MenuDiarioPage() {
                             .map(g => g.name)
                             .join(', ')
                         }
+                        {segundoPlates[segundo.id] && (
+                          <span className="ml-2 font-semibold">
+                            — {segundoPlates[segundo.id]} platos
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <div className="no-selection-warning">
@@ -691,10 +719,67 @@ export function MenuDiarioPage() {
                 <Button 
                   onClick={() => {
                     setShowGuarnicionesModal(false);
-                    // After selecting guarniciones, try to submit again (will check for more segundos)
-                    handleSubmit();
+                    setShowPlatesModal(true);
                   }} 
                   disabled={(segundoGuarniciones[currentSegundoForGuarniciones.id] || []).length === 0}
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Continuar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Available Plates Modal - Per Segundo */}
+        {showPlatesModal && currentSegundoForGuarniciones && (
+          <div className="guarniciones-modal-overlay" onClick={() => setShowPlatesModal(false)}>
+            <div className="guarniciones-modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="guarniciones-modal-header">
+                <div>
+                  <h3 className="guarniciones-modal-title">Platos Disponibles</h3>
+                  <p className="guarniciones-modal-subtitle">
+                    Cantidad de platos para: <strong>{currentSegundoForGuarniciones.name}</strong>
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setShowPlatesModal(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="p-4">
+                <label className="date-picker-label">Cantidad de platos</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={segundoPlates[currentSegundoForGuarniciones.id] || ''}
+                  onChange={(e) => setSegundoPlates(prev => ({
+                    ...prev,
+                    [currentSegundoForGuarniciones!.id]: e.target.value
+                  }))}
+                  placeholder="Ej: 50"
+                  className="date-picker-input text-center text-2xl font-bold"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    const val = segundoPlates[currentSegundoForGuarniciones!.id];
+                    if (e.key === 'Enter' && val && parseInt(val, 10) > 0) {
+                      setShowPlatesModal(false);
+                      handleSubmit();
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="guarniciones-modal-actions">
+                <Button variant="outline" onClick={() => setShowPlatesModal(false)}>
+                  Volver
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowPlatesModal(false);
+                    handleSubmit();
+                  }}
+                  disabled={!segundoPlates[currentSegundoForGuarniciones.id] || parseInt(segundoPlates[currentSegundoForGuarniciones.id], 10) <= 0}
                 >
                   <Check className="h-4 w-4 mr-2" />
                   Continuar
@@ -866,6 +951,11 @@ export function MenuDiarioPage() {
                               return (
                                 <div key={productId} className="menu-card-product-item">
                                   <span className="menu-card-product-name">{productName}</span>
+                                  {segundoGuarn && segundoGuarn.availablePlates != null && (
+                                    <span className="text-xs font-semibold text-primary ml-1">
+                                      [{segundoGuarn.availablePlates} platos]
+                                    </span>
+                                  )}
                                   {segundoGuarn && segundoGuarn.guarniciones.length > 0 && (
                                     <span className="menu-card-guarniciones">
                                       ({segundoGuarn.guarniciones.map((g, gIdx) => (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -54,6 +54,7 @@ export function NewOrderPage() {
 
   const { toast } = useToast();
   const { numberOfTables } = useSettings();
+  const crearPedidoRef = useRef<HTMLButtonElement>(null);
 
   // Generate time slots from 11:00 to 15:00 in 15-minute intervals
   const generateTimeSlots = () => {
@@ -296,37 +297,26 @@ export function NewOrderPage() {
       <div className="sticky top-0 z-10 bg-background border-b flex-shrink-0">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCancel}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Volver
-              </Button>
-              <h1 className="text-xl font-bold">Nuevo Pedido</h1>
-            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleCancel}
+              className="gap-2 font-bold"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver
+            </Button>
+            <h1 className="text-xl font-extrabold">Nuevo Pedido</h1>
             
             {Object.keys(cart).length > 0 && (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <ShoppingCart className="h-4 w-4" />
-                  <span>
-                    {getCartItemCount()} {getCartItemCount() === 1 ? 'producto' : 'productos'}
-                  </span>
-                  <span className="font-semibold">
-                    <Currency amount={getCartTotal()} />
-                  </span>
-                </div>
-                <Button
-                  onClick={handleOpenPaymentModal}
-                  disabled={!isFormValid()}
-                  size="sm"
-                >
-                  Crear Pedido
-                </Button>
+              <div className="flex items-center gap-2 text-sm">
+                <ShoppingCart className="h-4 w-4" />
+                <span>
+                  {getCartItemCount()} {getCartItemCount() === 1 ? 'producto' : 'productos'}
+                </span>
+                <span className="font-semibold">
+                  <Currency amount={getCartTotal()} />
+                </span>
               </div>
             )}
           </div>
@@ -340,10 +330,10 @@ export function NewOrderPage() {
           <div className="w-[30%] overflow-y-auto border-r p-4 space-y-4">
             {/* Order Type */}
             <Card>
-              <CardHeader className="pb-3">
-                <h3 className="font-semibold text-sm">Tipo de Pedido</h3>
+              <CardHeader className="pb-1">
+                <h3 className="font-semibold text-lg">Tipo de Pedido</h3>
               </CardHeader>
-              <CardContent className="order-type-radio-group space-y-3">
+              <CardContent className="order-type-radio-group space-y-2">
                 <div 
                   className={`radio-item ${orderType === "dinein" ? "selected" : ""}`}
                   onClick={() => setOrderType("dinein")}
@@ -428,16 +418,19 @@ export function NewOrderPage() {
             {/* Table Selection - Dine-in */}
             {orderType === "dinein" && (
               <Card>
-                <CardHeader className="pb-3">
-                  <h3 className="font-semibold text-sm">Seleccionar Mesa</h3>
+                <CardHeader className="pb-1">
+                  <h3 className="font-semibold text-lg">Seleccionar Mesa</h3>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2">
                   <div className="grid grid-cols-3 gap-2">
                     {Array.from({ length: numberOfTables }, (_, i) => i + 1).map((num) => (
                       <Button
                         key={num}
                         variant={tableNumber === num ? "default" : "outline"}
-                        onClick={() => setTableNumber(num)}
+                        onClick={() => {
+                          setTableNumber(num);
+                          setTimeout(() => crearPedidoRef.current?.focus(), 0);
+                        }}
                         className={`h-9 text-sm ${tableNumber === num ? "table-button-selected" : ""}`}
                       >
                         {num}
@@ -466,6 +459,18 @@ export function NewOrderPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Crear Pedido Button */}
+            <Button
+              ref={crearPedidoRef}
+              onClick={handleOpenPaymentModal}
+              disabled={!isFormValid()}
+              className="w-full h-16 text-lg font-semibold"
+            >
+              {Object.keys(cart).length > 0
+                ? <>Crear Pedido — <Currency amount={getCartTotal()} /></>
+                : "Crear Pedido"}
+            </Button>
           </div>
 
           {/* Right Column - 70% - Products */}
