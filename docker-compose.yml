@@ -1,0 +1,31 @@
+# docker-compose.yml
+# Restaurant Frontend Application
+
+version: '3.8'
+
+services:
+  # Frontend UI Application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: restaurant_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    environment:
+      # API URL - change this based on your setup
+      # For local backend: http://localhost:3000/api/v1
+      # For dockerized backend on same network: http://backend:3000/api/v1
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api/v1}
+    networks:
+      - restaurant_network
+
+networks:
+  # Use external network if connecting to backend stack
+  restaurant_network:
+    external: true
+    name: restaurant_network
+  # OR use internal network for standalone frontend
+  # restaurant_network:
+  #   driver: bridge

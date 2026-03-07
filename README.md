@@ -15,18 +15,23 @@ Modern React-based frontend for restaurant order management system with Keycloak
 
 ## Prerequisites
 
-- Node.js 18+ and npm
-- Backend API running (see `../restaurant-app-api/README.md`)
+- Node.js 18+ and npm (for local development)
+- Docker and Docker Compose (for containerized deployment)
+- Backend API running (see `../responsive-restaurant-api/README.md`)
 
 ## Quick Start
 
-### 1. Install Dependencies
+You can run the frontend in two ways: **locally** or **with Docker**.
+
+### Option 1: Local Development
+
+#### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Configure Environment
+#### 2. Configure Environment
 
 Create a `.env` file in the root directory:
 
@@ -34,7 +39,7 @@ Create a `.env` file in the root directory:
 VITE_API_URL=http://localhost:3000/api/v1
 ```
 
-### 3. Start Development Server
+#### 3. Start Development Server
 
 ```bash
 npm run dev
@@ -42,7 +47,82 @@ npm run dev
 
 The app will open at `http://localhost:5173`
 
-### 4. Login
+### Option 2: Docker
+
+The frontend has its own Docker Compose configuration for standalone deployment.
+
+#### 1. Configure Environment
+
+The frontend uses `.env` file for configuration. Make sure it points to your backend:
+
+```bash
+# For backend on host machine
+VITE_API_URL=http://localhost:3000/api/v1
+
+# For backend in Docker (same network)
+# VITE_API_URL=http://backend:3000/api/v1
+```
+
+#### 2. Start Frontend Container
+
+```bash
+docker-compose up -d
+```
+
+The frontend will be available at **http://localhost:5173**
+
+#### 3. View Logs
+
+```bash
+docker-compose logs -f frontend
+```
+
+#### 4. Stop Frontend
+
+```bash
+docker-compose down
+```
+
+#### 5. Rebuild After Changes
+
+```bash
+docker-compose up -d --build
+```
+
+### Connecting to Backend Docker Network
+
+If your backend is running in Docker, you can connect the frontend to the same network:
+
+**Option A: Use External Network** (recommended if backend is already running)
+
+The `docker-compose.yml` is configured to use the external `restaurant_network`. Make sure the backend network exists first:
+
+```bash
+# Start backend stack first
+cd ../responsive-restaurant-api
+docker-compose up -d
+
+# Then start frontend (will join existing network)
+cd ../responsive-restaurant-app
+docker-compose up -d
+```
+
+Set `VITE_API_URL=http://backend:3000/api/v1` in your `.env` file.
+
+**Option B: Standalone Network**
+
+Edit `docker-compose.yml` and comment out the external network:
+
+```yaml
+networks:
+  # Use internal network for standalone frontend
+  restaurant_network:
+    driver: bridge
+```
+
+Then use `VITE_API_URL=http://localhost:3000/api/v1` to connect to backend on host.
+
+### Login
 
 Use one of these default accounts:
 
@@ -58,12 +138,12 @@ Use one of these default accounts:
 npm run build
 ```
 
-Built files will be in the `dist/` directory.
+Built files will be in the `build/` directory and served by Nginx when running in Docker.
 
 ## Project Structure
 
 ```
-frontend/
+responsive-restaurant-app/
 ├── src/
 │   ├── components/        # React components
 │   │   ├── ui/           # Reusable UI components
@@ -75,9 +155,79 @@ frontend/
 │   │   └── api.ts        # API client with auto-refresh
 │   ├── App.tsx           # Main app component
 │   └── main.tsx          # App entry point
+├── docker-compose.yml    # Standalone Docker Compose config
+├── Dockerfile            # Multi-stage Docker build
+├── nginx.conf            # Nginx config for production
+├── .dockerignore         # Docker build exclusions
+├── .env                  # Environment config
+├── .env.sample           # Environment template
 ├── package.json
 └── vite.config.ts
 ```
+
+## Docker Configuration
+
+### Standalone Deployment
+
+The frontend has its own `docker-compose.yml` for independent deployment. It can:
+- Run standalone (connecting to backend on host)
+- Connect to backend Docker network (joining the `restaurant_network`)
+
+### Docker Compose Setup
+
+```yaml
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: restaurant_frontend
+    ports:
+      - "5173:80"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api/v1}
+    networks:
+      - restaurant_network
+
+networks:
+  # Uses external network created by backend stack
+  restaurant_network:
+    external: true
+    name: restaurant_network
+```
+
+### Dockerfile
+
+The frontend uses a **multi-stage Docker build**:
+
+1. **Build Stage**: Compiles React/Vite app with Node.js
+2. **Production Stage**: Serves static files with Nginx
+
+This results in a lightweight production image (~50MB) with optimized performance.
+
+### Nginx Configuration
+
+Custom `nginx.conf` provides:
+- SPA routing (redirects to `index.html` for client-side routes)
+- Static asset caching (1 year for JS/CSS/images)
+- Security headers (X-Frame-Options, X-Content-Type-Options, etc.)
+- Gzip compression for text assets
+
+### Environment Variables
+
+Create a `.env` file in the frontend root:
+
+```bash
+# For backend on host
+VITE_API_URL=http://localhost:3000/api/v1
+
+# For backend in Docker (same network)
+# VITE_API_URL=http://backend:3000/api/v1
+```
+
+The `VITE_API_URL` is read at **build time** by Vite, so you must rebuild the Docker image after changing it.
 
 ## Keycloak Integration
 
@@ -280,9 +430,15 @@ The currency symbol (`Bs.` or `$`) is configured in Settings and applied globall
 
 ### "Network Error" when logging in
 
+**Local Development:**
 - Ensure backend API is running on `http://localhost:3000`
 - Check CORS settings in backend
 - Verify `VITE_API_URL` in `.env` file
+
+**Docker:**
+- Ensure backend is running and accessible
+- Check `VITE_API_URL` in `.env` matches your backend location
+- If using Docker network, verify both containers are on `restaurant_network`
 
 ### Token expired immediately
 
@@ -292,8 +448,80 @@ The currency symbol (`Bs.` or `$`) is configured in Settings and applied globall
 ### Components not rendering
 
 - Clear browser localStorage: `localStorage.clear()`
-- Restart development server
+- Restart development server (local) or container (Docker)
 - Check browser console for errors
+
+### Docker Issues
+
+**Frontend container not starting:**
+```bash
+# View logs
+docker-compose logs frontend
+
+# Rebuild image
+docker-compose up -d --build
+```
+
+**Cannot reach backend from frontend:**
+
+If backend is on host:
+```bash
+# In .env
+VITE_API_URL=http://localhost:3000/api/v1
+
+# Rebuild
+docker-compose up -d --build
+```
+
+If backend is in Docker:
+```bash
+# Ensure backend network exists
+docker network ls | grep restaurant_network
+
+# In .env (use service name, not localhost)
+VITE_API_URL=http://backend:3000/api/v1
+
+# Rebuild
+docker-compose up -d --build
+```
+
+**Port 5173 already in use:**
+```bash
+# Stop existing containers
+docker-compose down
+
+# Change port in docker-compose.yml
+ports:
+  - "5174:80"  # Map to different host port
+```
+
+**Network not found error:**
+```bash
+# If "network restaurant_network declared as external, but could not be found"
+# Start backend first to create the network:
+cd ../responsive-restaurant-api
+docker-compose up -d
+
+# Then start frontend
+cd ../responsive-restaurant-app
+docker-compose up -d
+```
+
+### API URL Changes
+
+Remember: `VITE_API_URL` is embedded at **build time**, not runtime.
+
+After changing `.env`:
+```bash
+# Must rebuild the Docker image
+docker-compose down
+docker-compose up -d --build
+```
+
+For local dev, just restart:
+```bash
+npm run dev
+```
 
 ## Development
 
