@@ -340,6 +340,11 @@ class ApiClient {
     return response.data;
   }
 
+  async getSegundoAvailability() {
+    const response = await this.client.get('/daily-menus/today/availability');
+    return response.data;
+  }
+
   async getDailyMenuById(id: string) {
     const response = await this.client.get(`/daily-menus/${id}`);
     return response.data;

@@ -66,10 +66,10 @@ interface DailyMenu {
   createdAt: string;
 }
 
-// Helper to get product ID from either populated object or string
+// Helper to get product ID from either populated object or string (always returns plain string)
 const getProductId = (product: SelectedProduct | string): string => {
   if (typeof product === 'string') return product;
-  return product._id;
+  return String(product._id);
 };
 
 // Helper to get product name from populated object
@@ -284,18 +284,18 @@ export function MenuDiarioPage() {
     });
     setSelections(menuSelections);
     
-    // Populate segundo guarniciones
+    // Populate segundo guarniciones (normalize IDs to plain strings)
     const guarnicionesMap: Record<string, string[]> = {};
     (menu.segundoGuarniciones || []).forEach(sg => {
       const guarnicionIds = (sg.guarniciones || []).map(g => getGuarnicionId(g));
-      guarnicionesMap[sg.segundoProductId] = guarnicionIds;
+      guarnicionesMap[String(sg.segundoProductId)] = guarnicionIds;
     });
     setSegundoGuarniciones(guarnicionesMap);
     
     const platesMap: Record<string, string> = {};
     (menu.segundoGuarniciones || []).forEach(sg => {
       if (sg.availablePlates != null) {
-        platesMap[sg.segundoProductId] = sg.availablePlates.toString();
+        platesMap[String(sg.segundoProductId)] = sg.availablePlates.toString();
       }
     });
     setSegundoPlates(platesMap);
@@ -946,7 +946,7 @@ export function MenuDiarioPage() {
                               const productName = getProductName(product);
                               // For segundo, show guarniciones inline
                               const segundoGuarn = isSegundo 
-                                ? (menu.segundoGuarniciones || []).find(sg => sg.segundoProductId === productId)
+                                ? (menu.segundoGuarniciones || []).find(sg => String(sg.segundoProductId) === String(productId))
                                 : null;
                               return (
                                 <div key={productId} className="menu-card-product-item">

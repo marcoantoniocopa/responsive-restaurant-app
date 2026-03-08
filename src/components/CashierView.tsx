@@ -12,9 +12,23 @@ import { useToast } from "../hooks/use-toast";
 import { useConfig } from "../contexts/ConfigContext";
 import { ORDER_STATUS } from "../constants/orderStatus";
 
+interface SegundoAvailability {
+  segundoProductId: string;
+  segundoProductName: string;
+  totalPlates: number;
+  soldPlates: number;
+  remainingPlates: number;
+}
+
 interface CashierViewProps {}
 
 const ORDERS_PER_PAGE = 20;
+
+const isLunchTime = (): boolean => {
+  const now = new Date();
+  const hours = now.getHours();
+  return hours >= 11 && hours < 19;
+};
 
 export function CashierView({}: CashierViewProps) {
   const navigate = useNavigate();
@@ -25,6 +39,8 @@ export function CashierView({}: CashierViewProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [detailModalOrderId, setDetailModalOrderId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [availability, setAvailability] = useState<SegundoAvailability[]>([]);
+  const [showAvailability, setShowAvailability] = useState(isLunchTime());
   const [orderCounts, setOrderCounts] = useState({
     all: 0,
     reserva: 0,
@@ -149,10 +165,28 @@ export function CashierView({}: CashierViewProps) {
     }
   };
 
+  const fetchAvailability = async () => {
+    try {
+      const response = await apiClient.getSegundoAvailability();
+      setAvailability(response.data || []);
+    } catch {
+      setAvailability([]);
+    }
+  };
+
   // Initial load
   useEffect(() => {
     fetchOrders();
     fetchOrderCounts();
+    fetchAvailability();
+  }, []);
+
+  // Check lunch-time visibility every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setShowAvailability(isLunchTime());
+    }, 60_000);
+    return () => clearInterval(timer);
   }, []);
 
   // Refetch when page or tab changes (but not on initial mount)
@@ -167,6 +201,7 @@ export function CashierView({}: CashierViewProps) {
   const handleRefresh = () => {
     fetchOrders(false);
     fetchOrderCounts();
+    fetchAvailability();
   };
 
   const handleOrderStatusChange = async (orderId: string, newStatus: number) => {
@@ -242,6 +277,19 @@ export function CashierView({}: CashierViewProps) {
     <div className="max-w-6xl mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
         <h2>Panel de Caja</h2>
+        {showAvailability && availability.length > 0 && (
+          <div className="flex items-center gap-3">
+            {availability.map((item) => (
+              <Badge
+                key={item.segundoProductId}
+                variant={item.remainingPlates <= 0 ? "destructive" : item.remainingPlates <= 5 ? "outline" : "secondary"}
+                className="text-sm py-1 px-3"
+              >
+                {item.segundoProductName}: <span className="font-bold ml-1">{item.remainingPlates}</span>
+              </Badge>
+            ))}
+          </div>
+        )}
         <div className="flex gap-2">
           <Button onClick={handleNewOrder} size="sm">
             <Plus className="h-4 w-4 mr-2" />
