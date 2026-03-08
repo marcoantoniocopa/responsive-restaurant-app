@@ -35,12 +35,16 @@ interface Category {
   name: string;
 }
 
-export function NewOrderPage() {
+interface NewOrderPageProps {
+  quickMode?: boolean;
+}
+
+export function NewOrderPage({ quickMode = false }: NewOrderPageProps) {
   const navigate = useNavigate();
   const [cart, setCart] = useState<{ [key: string]: number }>({});
-  const [customerName, setCustomerName] = useState("");
+  const [customerName, setCustomerName] = useState(quickMode ? "S/N" : "");
   const [tableNumber, setTableNumber] = useState<number | null>(null);
-  const [orderType, setOrderType] = useState<"takeaway" | "dinein">("dinein");
+  const [orderType, setOrderType] = useState<"takeaway" | "dinein">(quickMode ? "takeaway" : "dinein");
   const [observation, setObservation] = useState("");
   const [pickupTimeSlot, setPickupTimeSlot] = useState("");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -97,13 +101,22 @@ export function NewOrderPage() {
           ? productsData.filter((product: Product) => product.isAvailable)
           : [];
         
+        const hour = new Date().getHours();
+        const isLunchTime = hour >= 11 && hour < 15;
+
+        const lunchOrder = ["Completo", "Segundo", "Sopa", "Bebidas", "Cafetería"];
+        const otherOrder = ["Cafetería", "Bebidas", "Completo", "Segundo", "Sopa"];
+        const categoryOrder = isLunchTime ? lunchOrder : otherOrder;
+
         const sortedCategories = Array.isArray(categoriesData)
           ? [...categoriesData]
-              // Filter out Guarniciones category (not shown in order creation)
               .filter((c: Category) => c.name !== "Guarniciones")
               .sort((a, b) => {
-                if (a.name === "Completo") return -1;
-                if (b.name === "Completo") return 1;
+                const aIdx = categoryOrder.findIndex(n => a.name.toLowerCase() === n.toLowerCase());
+                const bIdx = categoryOrder.findIndex(n => b.name.toLowerCase() === n.toLowerCase());
+                const aPrio = aIdx >= 0 ? aIdx : categoryOrder.length;
+                const bPrio = bIdx >= 0 ? bIdx : categoryOrder.length;
+                if (aPrio !== bPrio) return aPrio - bPrio;
                 return a.name.localeCompare(b.name);
               })
           : [];
@@ -111,9 +124,9 @@ export function NewOrderPage() {
         setProducts(availableProducts);
         setCategories(sortedCategories);
         
-        const completoCategory = sortedCategories.find(c => c.name === "Completo");
-        if (completoCategory) {
-          setSelectedCategory(completoCategory._id);
+        const defaultCategory = sortedCategories.length > 0 ? sortedCategories[0] : null;
+        if (defaultCategory) {
+          setSelectedCategory(defaultCategory._id);
         }
       } catch (error) {
         console.error("Error al cargar los datos:", error);
@@ -190,6 +203,7 @@ export function NewOrderPage() {
 
   const isFormValid = () => {
     const hasItems = Object.keys(cart).length > 0;
+    if (quickMode) return hasItems;
     const hasRequiredInfo = orderType === "dinein" 
       ? tableNumber !== null 
       : customerName.trim() !== "";
@@ -306,28 +320,40 @@ export function NewOrderPage() {
               <ArrowLeft className="h-4 w-4" />
               Volver
             </Button>
-            <h1 className="text-xl font-extrabold">Nuevo Pedido</h1>
+            <h1 className="text-xl font-extrabold">{quickMode ? "Pedido Rápido" : "Nuevo Pedido"}</h1>
             
-            {Object.keys(cart).length > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                <ShoppingCart className="h-4 w-4" />
-                <span>
-                  {getCartItemCount()} {getCartItemCount() === 1 ? 'producto' : 'productos'}
-                </span>
-                <span className="font-semibold">
-                  <Currency amount={getCartTotal()} />
-                </span>
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              {Object.keys(cart).length > 0 && (
+                <div className="flex items-center gap-2 text-sm">
+                  <ShoppingCart className="h-4 w-4" />
+                  <span>
+                    {getCartItemCount()} {getCartItemCount() === 1 ? 'producto' : 'productos'}
+                  </span>
+                  <span className="font-semibold">
+                    <Currency amount={getCartTotal()} />
+                  </span>
+                </div>
+              )}
+              {quickMode && (
+                <Button
+                  ref={crearPedidoRef}
+                  onClick={handleOpenPaymentModal}
+                  disabled={!isFormValid()}
+                  className="h-10 text-sm font-semibold"
+                >
+                  Crear Pedido{Object.keys(cart).length > 0 && <> — <Currency amount={getCartTotal()} /></>}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content - 2 Column Layout */}
+      {/* Main Content */}
       <div className="flex-1 overflow-hidden flex justify-center">
         <div className="max-w-[1400px] w-full flex">
-          {/* Left Column - 30% - Order Details */}
-          <div className="w-[30%] overflow-y-auto border-r p-4 space-y-4">
+          {/* Left Column - 30% - Order Details (hidden in quick mode) */}
+          {!quickMode && <div className="w-[30%] overflow-y-auto border-r p-4 space-y-4">
             {/* Order Type */}
             <Card>
               <CardHeader className="pb-1">
@@ -471,10 +497,10 @@ export function NewOrderPage() {
                 ? <>Crear Pedido — <Currency amount={getCartTotal()} /></>
                 : "Crear Pedido"}
             </Button>
-          </div>
+          </div>}
 
-          {/* Right Column - 70% - Products */}
-          <div className="w-[70%] overflow-y-auto p-4 products-column">
+          {/* Right Column - Products */}
+          <div className={`${quickMode ? 'w-full' : 'w-[70%]'} overflow-y-auto p-4 products-column`}>
             <div className="space-y-4">
               {isLoading ? (
                 <div className="flex justify-center items-center h-full">
@@ -511,49 +537,49 @@ export function NewOrderPage() {
                     ) : (
                       filteredProducts.map((product) => (
                         <Card key={product._id}>
-                          <CardContent className="p-3">
-                            <div className="space-y-2">
+                          <CardContent className="p-4">
+                            <div className="space-y-3">
                               <div className="flex items-start justify-between gap-2">
-                                <h4 className="font-semibold text-sm truncate flex-1">
+                                <h4 className="font-bold text-lg flex-1">
                                   {product.name}
                                 </h4>
-                                <Badge variant="secondary" className="shrink-0 text-xs">
+                                <Badge variant="secondary" className="shrink-0 text-base px-3 py-1">
                                   <Currency amount={product.sellPrice} />
                                 </Badge>
                               </div>
-                              <p className="text-xs text-muted-foreground line-clamp-1">
+                              <p className="text-sm text-muted-foreground line-clamp-1">
                                 {product.description || "Producto delicioso"}
                               </p>
                               
                               <div className="flex justify-end">
                                 {cart[product._id] ? (
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-3">
                                     <Button
                                       size="sm"
                                       variant="outline"
                                       onClick={() => removeFromCart(product._id)}
-                                      className="h-7 w-7 p-0"
+                                      className="h-9 w-9 p-0"
                                     >
-                                      <Minus className="h-3 w-3" />
+                                      <Minus className="h-4 w-4" />
                                     </Button>
-                                    <span className="text-sm font-semibold min-w-[1.5rem] text-center">
+                                    <span className="text-lg font-bold min-w-[2rem] text-center">
                                       {cart[product._id]}
                                     </span>
                                     <Button
                                       size="sm"
                                       onClick={() => addToCart(product._id)}
-                                      className="h-7 w-7 p-0"
+                                      className="h-9 w-9 p-0"
                                     >
-                                      <Plus className="h-3 w-3" />
+                                      <Plus className="h-4 w-4" />
                                     </Button>
                                   </div>
                                 ) : (
                                   <Button
                                     size="sm"
                                     onClick={() => addToCart(product._id)}
-                                    className="h-7 text-xs"
+                                    className="h-9 text-sm px-4"
                                   >
-                                    <Plus className="h-3 w-3 mr-1" />
+                                    <Plus className="h-4 w-4 mr-1" />
                                     Agregar
                                   </Button>
                                 )}
@@ -621,14 +647,14 @@ export function NewOrderPage() {
                   value={cashReceived}
                   onChange={(e) => setCashReceived(e.target.value)}
                   placeholder="0.00"
-                  className="text-lg text-center font-semibold"
+                  className="text-3xl text-center font-bold !h-14"
                   autoFocus
                 />
                 
                 {/* Total */}
-                <div className="mt-4 pt-3 border-t flex justify-between text-sm">
+                <div className="mt-4 pt-3 border-t flex justify-between items-center text-sm">
                   <span>Total del pedido:</span>
-                  <span className="font-semibold">
+                  <span className="text-2xl font-bold">
                     <Currency amount={getCartTotal()} />
                   </span>
                 </div>

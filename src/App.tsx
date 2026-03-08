@@ -178,6 +178,16 @@ function AppContent() {
             }
           />
           
+          {/* Quick Order - Admin and Cashier only */}
+          <Route
+            path="/caja/pedido-rapido"
+            element={
+              <RoleProtectedRoute allowedRoles={[ROLES.ADMIN, ROLES.CASHIER]}>
+                <NewOrderPage quickMode />
+              </RoleProtectedRoute>
+            }
+          />
+          
           {/* Cocina - Admin, Chef, and Kitchen staff */}
           <Route
             path="/cocina"

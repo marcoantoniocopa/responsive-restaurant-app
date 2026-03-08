@@ -25,6 +25,7 @@ export function KitchenView({}: KitchenViewProps) {
   const [isPreparingOpen, setIsPreparingOpen] = useState(true);
   const [isCompletedOpen, setIsCompletedOpen] = useState(false);
   const [isCancelledOpen, setIsCancelledOpen] = useState(false);
+  const [isWaitingSegundoOpen, setIsWaitingSegundoOpen] = useState(false);
   const { toast } = useToast();
   const { getOrderStatusName } = useConfig();
   const { socket, isConnected, on, off } = useSocket();
@@ -266,10 +267,11 @@ export function KitchenView({}: KitchenViewProps) {
     order.status === ORDER_STATUS.RESERVA || order.status === ORDER_STATUS.NUEVO
   );
   
-  // Preparing = En Progreso (3) or Servir Sopa (6)
-  const preparingOrders = orders.filter(order => 
-    order.status === ORDER_STATUS.EN_PROGRESO || order.status === ORDER_STATUS.SERVIR_SOPA
-  );
+  // Preparing = En Progreso (3)
+  const preparingOrders = orders.filter(order => order.status === ORDER_STATUS.EN_PROGRESO);
+
+  // Waiting Segundo = Servir Sopa (6) - soup served, waiting for segundo
+  const waitingSegundoOrders = orders.filter(order => order.status === ORDER_STATUS.SERVIR_SOPA);
   
   // Completed = Completado (4)
   const completedOrders = orders.filter(order => order.status === ORDER_STATUS.COMPLETADO);
@@ -307,9 +309,18 @@ export function KitchenView({}: KitchenViewProps) {
     setIsPreparingOpen(false);
     setIsCompletedOpen(false);
     setIsCancelledOpen(true);
+    setIsWaitingSegundoOpen(false);
   };
 
-  const handleShowAll = () => {
+  const handleFilterWaitingSegundo = () => {
+    setIsPendingOpen(false);
+    setIsPreparingOpen(false);
+    setIsCompletedOpen(false);
+    setIsCancelledOpen(false);
+    setIsWaitingSegundoOpen(true);
+  };
+
+  const _handleShowAll = () => {
     setIsPendingOpen(true);
     setIsPreparingOpen(true);
     setIsCompletedOpen(false);
@@ -325,10 +336,11 @@ export function KitchenView({}: KitchenViewProps) {
   };
 
   // Check if a section is the only one open
-  const isPendingOnlyOpen = isPendingOpen && !isPreparingOpen && !isCompletedOpen && !isCancelledOpen;
-  const isPreparingOnlyOpen = isPreparingOpen && !isPendingOpen && !isCompletedOpen && !isCancelledOpen;
-  const isCompletedOnlyOpen = isCompletedOpen && !isPendingOpen && !isPreparingOpen && !isCancelledOpen;
-  const isCancelledOnlyOpen = isCancelledOpen && !isPendingOpen && !isPreparingOpen && !isCompletedOpen;
+  const isPendingOnlyOpen = isPendingOpen && !isPreparingOpen && !isCompletedOpen && !isCancelledOpen && !isWaitingSegundoOpen;
+  const isPreparingOnlyOpen = isPreparingOpen && !isPendingOpen && !isCompletedOpen && !isCancelledOpen && !isWaitingSegundoOpen;
+  const isCompletedOnlyOpen = isCompletedOpen && !isPendingOpen && !isPreparingOpen && !isCancelledOpen && !isWaitingSegundoOpen;
+  const isCancelledOnlyOpen = isCancelledOpen && !isPendingOpen && !isPreparingOpen && !isCompletedOpen && !isWaitingSegundoOpen;
+  const isWaitingSegundoOnlyOpen = isWaitingSegundoOpen && !isPendingOpen && !isPreparingOpen && !isCompletedOpen && !isCancelledOpen;
 
   // Calculate item counts by category for kitchen summary
   const getKitchenItemCounts = (ordersList: KitchenOrder[]) => {
@@ -445,22 +457,14 @@ export function KitchenView({}: KitchenViewProps) {
           </CardContent>
         </Card>
         
-        <Card className="stat-card stat-card-orange">
-          <CardContent className="stat-card-content">
-            <AlertCircle className="stat-icon text-orange-600" />
-            <p className="stat-number text-orange-600">{getUrgentOrders().length}</p>
-            <p className="stat-label">Urgentes</p>
-          </CardContent>
-        </Card>
-        
         <Card 
-          className="stat-card stat-card-gray"
-          onClick={handleShowAll}
+          className="stat-card stat-card-orange"
+          onClick={handleFilterWaitingSegundo}
         >
           <CardContent className="stat-card-content">
-            <Clock className="stat-icon text-gray-600" />
-            <p className="stat-number text-gray-600">{kitchenOrders.length}</p>
-            <p className="stat-label">Activos</p>
+            <AlertCircle className="stat-icon text-orange-600" />
+            <p className="stat-number text-orange-600">{waitingSegundoOrders.length}</p>
+            <p className="stat-label">Esperando Segundo</p>
           </CardContent>
         </Card>
         
@@ -609,6 +613,46 @@ export function KitchenView({}: KitchenViewProps) {
                   onClick={(e) => { e.stopPropagation(); handleFilterPreparing(); }}
                 >
                   Ver {preparingOrders.length - DEFAULT_DISPLAY_LIMIT} más
+                </button>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Waiting Segundo Orders - Sopa served, waiting for segundo */}
+        {isWaitingSegundoOpen && waitingSegundoOrders.length > 0 && (
+          <Collapsible open={isWaitingSegundoOpen} onOpenChange={setIsWaitingSegundoOpen}>
+            <CollapsibleTrigger className="collapsible-section-header collapsible-section-orange">
+              <div className="collapsible-section-title">
+                {isWaitingSegundoOpen ? (
+                  <ChevronDown className="collapsible-icon" />
+                ) : (
+                  <ChevronRight className="collapsible-icon" />
+                )}
+                <h3>Esperando Segundo</h3>
+                <Badge variant="secondary">{waitingSegundoOrders.length}</Badge>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="collapsible-section-content">
+              <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
+                {getDisplayOrders(waitingSegundoOrders, isWaitingSegundoOnlyOpen).map((order) => (
+                  <KitchenOrderCard
+                    key={order.id}
+                    order={order}
+                    onStatusChange={handleOrderStatusChange}
+                    waitTime={0}
+                    isDetailModalOpen={detailModalOrderId === order.id}
+                    onOpenDetailModal={setDetailModalOrderId}
+                    onCloseDetailModal={() => setDetailModalOrderId(null)}
+                  />
+                ))}
+              </div>
+              {!isWaitingSegundoOnlyOpen && waitingSegundoOrders.length > DEFAULT_DISPLAY_LIMIT && (
+                <button 
+                  className="section-view-more"
+                  onClick={(e) => { e.stopPropagation(); handleFilterWaitingSegundo(); }}
+                >
+                  Ver {waitingSegundoOrders.length - DEFAULT_DISPLAY_LIMIT} más
                 </button>
               )}
             </CollapsibleContent>

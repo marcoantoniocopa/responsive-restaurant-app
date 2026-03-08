@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Card, CardContent, CardHeader } from "./ui/card";
-import { RefreshCw, TrendingUp, Clock, CheckCircle, Plus, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshCw, TrendingUp, Clock, CheckCircle, Plus, Zap, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Currency } from "./Currency";
 import { apiClient } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
@@ -300,6 +300,10 @@ export function CashierView({}: CashierViewProps) {
           </div>
         )}
         <div className="flex gap-2">
+          <Button onClick={() => navigate("/caja/pedido-rapido")} size="sm" variant="outline">
+            <Zap className="h-4 w-4 mr-2" />
+            Pedido Rápido
+          </Button>
           <Button onClick={handleNewOrder} size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Pedido
