@@ -79,8 +79,11 @@ export function KitchenOrderCard({
     return null;
   };
 
-  // Get available next statuses based on current status
-  const availableStatuses = getAvailableTransitions(order.status);
+  // Get available next statuses based on current status and order context
+  const availableStatuses = getAvailableTransitions(order.status, {
+    orderType: order.orderType,
+    items: order.items,
+  });
 
   // Check if we need to truncate items
   const hasMoreItems = order.items.length > MAX_VISIBLE_ITEMS;
@@ -217,6 +220,16 @@ export function KitchenOrderCard({
                 Preparar
               </button>
             )}
+            {availableStatuses.includes(ORDER_STATUS.SERVIR_SOPA) && (
+              <button
+                onClick={() => onStatusChange(order.id, ORDER_STATUS.SERVIR_SOPA)}
+                className="kitchen-btn"
+                style={{ backgroundColor: '#f97316', color: 'white' }}
+              >
+                <Utensils />
+                Servir Sopa
+              </button>
+            )}
             {availableStatuses.includes(ORDER_STATUS.COMPLETADO) && (
               <button
                 onClick={() => onStatusChange(order.id, ORDER_STATUS.COMPLETADO)}
@@ -315,6 +328,19 @@ export function KitchenOrderCard({
                   >
                     <Utensils />
                     Preparar
+                  </button>
+                )}
+                {availableStatuses.includes(ORDER_STATUS.SERVIR_SOPA) && (
+                  <button
+                    onClick={() => {
+                      onStatusChange(order.id, ORDER_STATUS.SERVIR_SOPA);
+                      onCloseDetailModal?.();
+                    }}
+                    className="kitchen-btn"
+                    style={{ backgroundColor: '#f97316', color: 'white' }}
+                  >
+                    <Utensils />
+                    Servir Sopa
                   </button>
                 )}
                 {availableStatuses.includes(ORDER_STATUS.COMPLETADO) && (

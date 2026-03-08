@@ -88,7 +88,7 @@ export function CashierView({}: CashierViewProps) {
         all: allOrdersData.length,
         reserva: allOrdersData.filter((o: any) => o.currentStatus === ORDER_STATUS.RESERVA).length,
         nuevo: allOrdersData.filter((o: any) => o.currentStatus === ORDER_STATUS.NUEVO).length,
-        en_progreso: allOrdersData.filter((o: any) => o.currentStatus === ORDER_STATUS.EN_PROGRESO).length,
+        en_progreso: allOrdersData.filter((o: any) => o.currentStatus === ORDER_STATUS.EN_PROGRESO || o.currentStatus === ORDER_STATUS.SERVIR_SOPA).length,
         completado: completedOrders.length,
         revenue,
       };
@@ -120,8 +120,9 @@ export function CashierView({}: CashierViewProps) {
       };
       
       // Add status filter if not "all"
+      // "En Progreso" tab also includes "Servir Sopa" (6), so skip API filter and handle client-side
       const statusFilter = status !== undefined ? status : selectedTab;
-      if (statusFilter !== "all") {
+      if (statusFilter !== "all" && statusFilter !== ORDER_STATUS.EN_PROGRESO) {
         params.status = statusFilter;
       }
       
@@ -150,7 +151,15 @@ export function CashierView({}: CashierViewProps) {
         paymentMethod: order.paymentMethod, // Numeric payment method
       }));
       
-      setOrders(transformedOrders);
+      // Client-side filter for "En Progreso" tab: include both status 3 and 6
+      const statusToFilter = status !== undefined ? status : selectedTab;
+      if (statusToFilter === ORDER_STATUS.EN_PROGRESO) {
+        setOrders(transformedOrders.filter(o =>
+          o.status === ORDER_STATUS.EN_PROGRESO || o.status === ORDER_STATUS.SERVIR_SOPA
+        ));
+      } else {
+        setOrders(transformedOrders);
+      }
     } catch (error: any) {
       console.error("Failed to fetch orders:", error);
       toast({
@@ -397,7 +406,7 @@ export function CashierView({}: CashierViewProps) {
                 key={order.id}
                 order={order}
                 onStatusChange={handleOrderStatusChange}
-                showActions={order.status !== ORDER_STATUS.COMPLETADO}
+                showActions={order.status !== ORDER_STATUS.COMPLETADO && order.status !== ORDER_STATUS.CANCELADO}
                 compact={true}
                 isDetailModalOpen={detailModalOrderId === order.id}
                 onOpenDetailModal={setDetailModalOrderId}

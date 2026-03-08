@@ -76,8 +76,11 @@ export function OrderCard({
     });
   };
 
-  // Get available next statuses based on current status
-  const availableStatuses = getAvailableTransitions(order.status);
+  // Get available next statuses based on current status and order context
+  const availableStatuses = getAvailableTransitions(order.status, {
+    orderType: order.orderType,
+    items: order.items,
+  });
 
   // Check if we need to truncate items
   const hasMoreItems = order.items.length > MAX_VISIBLE_ITEMS;
@@ -207,6 +210,16 @@ export function OrderCard({
                 className="flex-1"
               >
                 Iniciar Preparación
+              </Button>
+            )}
+            {availableStatuses.includes(ORDER_STATUS.SERVIR_SOPA) && (
+              <Button
+                size="sm"
+                onClick={() => onStatusChange(order.id, ORDER_STATUS.SERVIR_SOPA)}
+                className="flex-1 text-white"
+                style={{ backgroundColor: '#f97316' }}
+              >
+                Servir Sopa
               </Button>
             )}
             {availableStatuses.includes(ORDER_STATUS.COMPLETADO) && (
@@ -349,6 +362,19 @@ export function OrderCard({
                     className="flex-1"
                   >
                     Iniciar Preparación
+                  </Button>
+                )}
+                {availableStatuses.includes(ORDER_STATUS.SERVIR_SOPA) && (
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      onStatusChange(order.id, ORDER_STATUS.SERVIR_SOPA);
+                      onCloseDetailModal?.();
+                    }}
+                    className="flex-1 text-white"
+                    style={{ backgroundColor: '#f97316' }}
+                  >
+                    Servir Sopa
                   </Button>
                 )}
                 {availableStatuses.includes(ORDER_STATUS.COMPLETADO) && (

@@ -253,11 +253,12 @@ export function KitchenView({}: KitchenViewProps) {
     }
   };
 
-  // Filter orders relevant to kitchen (Reserva, Nuevo, En Progreso)
+  // Filter orders relevant to kitchen (Reserva, Nuevo, En Progreso, Servir Sopa)
   const kitchenOrders = orders.filter(order => 
     order.status === ORDER_STATUS.RESERVA || 
     order.status === ORDER_STATUS.NUEVO || 
-    order.status === ORDER_STATUS.EN_PROGRESO
+    order.status === ORDER_STATUS.EN_PROGRESO ||
+    order.status === ORDER_STATUS.SERVIR_SOPA
   );
 
   // Pending = Reserva (1) or Nuevo (2) - orders waiting to start
@@ -265,8 +266,10 @@ export function KitchenView({}: KitchenViewProps) {
     order.status === ORDER_STATUS.RESERVA || order.status === ORDER_STATUS.NUEVO
   );
   
-  // Preparing = En Progreso (3)
-  const preparingOrders = orders.filter(order => order.status === ORDER_STATUS.EN_PROGRESO);
+  // Preparing = En Progreso (3) or Servir Sopa (6)
+  const preparingOrders = orders.filter(order => 
+    order.status === ORDER_STATUS.EN_PROGRESO || order.status === ORDER_STATUS.SERVIR_SOPA
+  );
   
   // Completed = Completado (4)
   const completedOrders = orders.filter(order => order.status === ORDER_STATUS.COMPLETADO);

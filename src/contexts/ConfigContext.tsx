@@ -35,6 +35,7 @@ const FALLBACK_ORDER_STATUSES: Record<number, { name: string; code: string }> = 
   3: { name: "En Progreso", code: "en_progreso" },
   4: { name: "Completado", code: "completado" },
   5: { name: "Cancelado", code: "cancelado" },
+  6: { name: "Servir Sopa", code: "servir_sopa" },
 };
 
 interface ConfigContextType {
