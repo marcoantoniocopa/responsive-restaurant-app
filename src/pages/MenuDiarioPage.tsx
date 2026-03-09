@@ -121,16 +121,22 @@ export function MenuDiarioPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
 
-  // Get today's date in YYYY-MM-DD format
+  // Get today's date in YYYY-MM-DD format (local timezone)
   const getTodayString = () => {
     const today = new Date();
-    return today.toISOString().split('T')[0];
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   };
 
-  // Get the date portion from a UTC date string (YYYY-MM-DD)
+  // Get the local date portion from a date string (YYYY-MM-DD)
   const getDatePortion = (dateString: string): string => {
-    // Extract just the date portion from UTC string (first 10 chars)
-    return dateString.substring(0, 10);
+    const date = new Date(dateString);
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   };
 
   // Check if a date is today
@@ -147,13 +153,10 @@ export function MenuDiarioPage() {
     return menuDate < today;
   };
 
-  // Format date for display (converts UTC to local display)
+  // Format date for display (using local timezone)
   const formatDate = (dateString: string) => {
-    // Parse the UTC date and display in local timezone
-    const datePortion = getDatePortion(dateString);
-    const [year, month, day] = datePortion.split('-').map(Number);
-    // Create date at noon local time for display to avoid date shifting
-    const date = new Date(year, month - 1, day, 12, 0, 0);
+    const parsed = new Date(dateString);
+    const date = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12, 0, 0);
     return date.toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
@@ -411,11 +414,12 @@ export function MenuDiarioPage() {
         availablePlates: segundoPlates[s.id] ? parseInt(segundoPlates[s.id], 10) : null
       })).filter(sg => sg.guarniciones.length > 0);
 
-      // Create date at UTC midnight (YYYY-MM-DDT00:00:00.000Z)
-      const dateUTC = `${selectedDate}T00:00:00.000Z`;
+      // Create date at local midnight, then send as ISO (UTC representation of local midnight)
+      const [y, m, d] = selectedDate.split('-').map(Number);
+      const localMidnight = new Date(y, m - 1, d, 0, 0, 0, 0);
 
       const payload = {
-        date: dateUTC,
+        date: localMidnight.toISOString(),
         categorySelections,
         segundoGuarniciones: segundoGuarnicionesArray
       };
@@ -534,10 +538,28 @@ export function MenuDiarioPage() {
                 {isEditing ? 'Editar Menú Diario' : 'Crear Nuevo Menú Diario'}
               </h2>
             </div>
-            <Button variant="ghost" onClick={resetForm}>
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Volver
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={resetForm}>
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Volver
+              </Button>
+              <Button onClick={handleSubmit} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    {!allSegundosHaveGuarniciones()
+                      ? 'Continuar a Guarniciones' 
+                      : isEditing ? 'Actualizar Menú' : 'Crear Menú'
+                    }
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Date Picker */}
@@ -647,28 +669,7 @@ export function MenuDiarioPage() {
             </div>
           )}
 
-          {/* Actions */}
-          <div className="menu-card-actions">
-            <Button variant="outline" onClick={resetForm}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSubmit} disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  {!allSegundosHaveGuarniciones()
-                    ? 'Continuar a Guarniciones' 
-                    : isEditing ? 'Actualizar Menú' : 'Crear Menú'
-                  }
-                </>
-              )}
-            </Button>
-          </div>
+          
         </div>
 
         {/* Guarniciones Modal - Per Segundo */}

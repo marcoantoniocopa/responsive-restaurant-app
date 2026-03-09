@@ -25,7 +25,7 @@ export function KitchenView({}: KitchenViewProps) {
   const [isPreparingOpen, setIsPreparingOpen] = useState(true);
   const [isCompletedOpen, setIsCompletedOpen] = useState(false);
   const [isCancelledOpen, setIsCancelledOpen] = useState(false);
-  const [isWaitingSegundoOpen, setIsWaitingSegundoOpen] = useState(false);
+  const [isWaitingSegundoOpen, setIsWaitingSegundoOpen] = useState(true);
   const { toast } = useToast();
   const { getOrderStatusName } = useConfig();
   const { socket, isConnected, on, off } = useSocket();
