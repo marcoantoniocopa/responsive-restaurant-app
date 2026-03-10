@@ -143,12 +143,12 @@ export function KitchenOrderCard({
           <span className="text-[11px] font-medium truncate">
             {order.customerName}
           </span>
+          {order.pickupTime && (
+            <span className="kitchen-pickup-time">
+              🕐 Recojo: {new Date(order.pickupTime).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          )}
         </div>
-        {order.pickupTime && (
-          <div className="kitchen-pickup-time">
-            🕐 Recojo: {new Date(order.pickupTime).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
-          </div>
-        )}
 
         {/* Observation */}
         {order.observation && (
