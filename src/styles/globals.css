@@ -187,3 +187,24 @@
 html {
   font-size: var(--font-size);
 }
+
+/* High-visibility focus styles for accessibility */
+*:focus-visible {
+  outline: 3px solid #2563eb !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.3) !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #2563eb !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3) !important;
+}
+
+button:focus-visible {
+  outline: 3px solid #2563eb !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.3) !important;
+}

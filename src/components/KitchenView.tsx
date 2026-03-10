@@ -283,9 +283,12 @@ export function KitchenView({}: KitchenViewProps) {
   const DEFAULT_DISPLAY_LIMIT = 4;
 
   // Filter handlers for stat cards
+  // Active work sections (Pending, Preparing, Waiting Segundo) stay open by default.
+  // Clicking a filter only toggles that section; Completed/Cancelled close the active ones.
   const handleFilterPending = () => {
     setIsPendingOpen(true);
     setIsPreparingOpen(false);
+    setIsWaitingSegundoOpen(false);
     setIsCompletedOpen(false);
     setIsCancelledOpen(false);
   };
@@ -293,6 +296,7 @@ export function KitchenView({}: KitchenViewProps) {
   const handleFilterPreparing = () => {
     setIsPendingOpen(false);
     setIsPreparingOpen(true);
+    setIsWaitingSegundoOpen(true);
     setIsCompletedOpen(false);
     setIsCancelledOpen(false);
   };
@@ -300,6 +304,7 @@ export function KitchenView({}: KitchenViewProps) {
   const handleFilterCompleted = () => {
     setIsPendingOpen(false);
     setIsPreparingOpen(false);
+    setIsWaitingSegundoOpen(false);
     setIsCompletedOpen(true);
     setIsCancelledOpen(false);
   };
@@ -307,22 +312,15 @@ export function KitchenView({}: KitchenViewProps) {
   const handleFilterCancelled = () => {
     setIsPendingOpen(false);
     setIsPreparingOpen(false);
+    setIsWaitingSegundoOpen(false);
     setIsCompletedOpen(false);
     setIsCancelledOpen(true);
-    setIsWaitingSegundoOpen(false);
   };
 
   const handleFilterWaitingSegundo = () => {
     setIsPendingOpen(false);
     setIsPreparingOpen(false);
-    setIsCompletedOpen(false);
-    setIsCancelledOpen(false);
     setIsWaitingSegundoOpen(true);
-  };
-
-  const _handleShowAll = () => {
-    setIsPendingOpen(true);
-    setIsPreparingOpen(true);
     setIsCompletedOpen(false);
     setIsCancelledOpen(false);
   };
@@ -442,7 +440,7 @@ export function KitchenView({}: KitchenViewProps) {
           <CardContent className="stat-card-content">
             <Clock className="stat-icon text-yellow-600" />
             <p className="stat-number text-yellow-600">{pendingOrders.length}</p>
-            <p className="stat-label">En Cola</p>
+            <p className="stat-label">Reserva</p>
           </CardContent>
         </Card>
         
@@ -517,7 +515,7 @@ export function KitchenView({}: KitchenViewProps) {
                 ) : (
                   <ChevronRight className="collapsible-icon" />
                 )}
-              <h3>Pedidos Pendientes</h3>
+              <h3>Reservas</h3>
               <Badge variant="secondary">{pendingOrders.length}</Badge>
                 {/* Kitchen item summary */}
                 <div className="kitchen-item-summary">

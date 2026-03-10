@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
-import { Clock, CheckCircle, XCircle, ChevronDown, Utensils } from "lucide-react";
+import { CheckCircle, XCircle, ChevronDown, Utensils } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { useConfig } from "../contexts/ConfigContext";
 import { ORDER_STATUS, getAvailableTransitions } from "../constants/orderStatus";
@@ -64,21 +64,6 @@ export function KitchenOrderCard({
   const { getOrderTypeName } = useConfig();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString("es-ES", { 
-      hour: "2-digit", 
-      minute: "2-digit" 
-    });
-  };
-
-  // Display pickup time if available
-  const getDisplayTime = () => {
-    if (order.pickupTime) {
-      return formatTime(new Date(order.pickupTime));
-    }
-    return null;
-  };
-
   // Get available next statuses based on current status and order context
   const availableStatuses = getAvailableTransitions(order.status, {
     orderType: order.orderType,
@@ -118,23 +103,24 @@ export function KitchenOrderCard({
   };
 
   // Render items list for kitchen (no prices, focused on preparation)
+  const getCompletoLabel = (item: KitchenOrder['items'][0]) => {
+    if (!item.isCompleto || !item.components) return item.name;
+    const segundo = item.components.find(c => !c.toLowerCase().includes('sopa'));
+    return segundo ? `Completo - ${segundo}` : item.name;
+  };
+
   const renderItems = (items: KitchenOrder['items']) => (
     <div className="space-y-1">
       {items.map((item, index) => (
-        <div key={index} className="space-y-0.5">
-          <div className="flex items-start gap-1">
-            <span className="text-[11px] font-semibold min-w-[1.5rem] text-center bg-muted rounded px-1 py-0.5">
+        <div key={index}>
+          <div className="kitchen-item-row">
+            <span className="kitchen-item-qty">
               {item.quantity}x
             </span>
-            <span className={`text-[11px] flex-1 leading-tight ${item.isCompleto ? 'font-semibold' : ''}`}>
-              {item.name}
+            <span className={`kitchen-item-name ${item.isCompleto ? 'font-bold' : ''}`}>
+              {item.isCompleto ? getCompletoLabel(item) : item.name}
             </span>
           </div>
-          {item.isCompleto && item.components && (
-            <div className="text-[9px] text-muted-foreground ml-7 pl-1.5 border-l border-muted">
-              {item.components.join(" + ")}
-            </div>
-          )}
         </div>
       ))}
     </div>
@@ -145,39 +131,24 @@ export function KitchenOrderCard({
       <CardHeader className="kitchen-card-header">
         {/* Order Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="text-base font-bold">
-              #{order.orderNumber || order.id}
-            </span>
-            <Badge variant="secondary" className="text-[8px] px-1 py-0">
-              {getOrderTypeName(order.orderType)}
-            </Badge>
-          </div>
+          <span className="text-base font-bold">
+            #{order.orderNumber || order.id}
+          </span>
+          <Badge variant="secondary" className="text-[8px] px-1 py-0">
+            {getOrderTypeName(order.orderType)}
+          </Badge>
           <StatusBadge statusId={order.status} className="text-[8px]" />
         </div>
-        
-        {/* Customer & Time Info */}
         <div className="flex items-center justify-between mt-0.5">
-          <span className="text-[11px] font-medium truncate max-w-[80px]">
+          <span className="text-[11px] font-medium truncate">
             {order.customerName}
           </span>
-          <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-            {getDisplayTime() && (
-              <>
-                <Clock className="h-2.5 w-2.5" />
-                <span>{getDisplayTime()}</span>
-              </>
-            )}
-            {waitTime > 0 && (order.orderType === 1 || order.orderType === 2) && (
-              <Badge 
-                variant={waitTime > 15 ? "destructive" : "outline"} 
-                className="text-[8px] px-1 py-0"
-              >
-                {waitTime}m
-              </Badge>
-            )}
-          </div>
         </div>
+        {order.pickupTime && (
+          <div className="kitchen-pickup-time">
+            🕐 Recojo: {new Date(order.pickupTime).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+          </div>
+        )}
 
         {/* Observation */}
         {order.observation && (
@@ -288,11 +259,10 @@ export function KitchenOrderCard({
               </div>
               <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
                 <span className="font-medium">{order.customerName}</span>
-                {getDisplayTime() && (
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    <span>{getDisplayTime()}</span>
-                  </div>
+                {order.pickupTime && (
+                  <span className="font-semibold text-primary">
+                    🕐 Recojo: {new Date(order.pickupTime).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+                  </span>
                 )}
               </div>
               {/* Observation */}
