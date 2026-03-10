@@ -62,6 +62,7 @@ export function Navigation() {
       label: 'Cocina',
       icon: ChefHat,
       show: hasRole('admin') || hasRole('kitchen') || hasRole('chef'),
+      hideOnMobile: true,
     },
     {
       path: '/products',
@@ -112,7 +113,7 @@ export function Navigation() {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}`
+                    `nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}${(item as any).hideOnMobile ? ' nav-link-hide-mobile' : ''}`
                   }
                 >
                   <item.icon className="nav-link-icon" />

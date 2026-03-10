@@ -379,7 +379,7 @@ export function KitchenView({}: KitchenViewProps) {
   };
 
   const getUrgentOrders = () => {
-    return kitchenOrders.filter(order => getWaitTime(order.timestamp) > 15);
+    return kitchenOrders.filter(order => getWaitTime(order.timestamp) > 30);
   };
 
   if (isLoading) {
@@ -393,26 +393,26 @@ export function KitchenView({}: KitchenViewProps) {
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-6">
       {/* Kitchen Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <ChefHat className="h-8 w-8 text-primary" />
+      <div className="kitchen-header">
+        <div className="kitchen-header-left">
+          <ChefHat className="h-8 w-8 text-primary kitchen-header-desktop-only" />
           <div>
-            <h2>Vista de Cocina</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="kitchen-header-desktop-only">Vista de Cocina</h2>
+            <p className="kitchen-clock">
               {currentTime.toLocaleTimeString("es-ES", { 
                 hour: "2-digit", 
-                minute: "2-digit" 
+                minute: "2-digit",
+                second: "2-digit"
               })}
             </p>
           </div>
         </div>
         
-        {/* Connection Status Indicator */}
         <div className="flex items-center gap-2">
           {isConnected ? (
             <div className="connection-status-badge connected">
               <Wifi className="connection-status-icon" />
-              Tiempo Real
+              <span className="kitchen-header-desktop-only">Tiempo Real</span>
             </div>
           ) : (
             <div className="connection-status-badge disconnected">
@@ -427,8 +427,8 @@ export function KitchenView({}: KitchenViewProps) {
             size="sm"
             disabled={isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualizar
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="kitchen-header-desktop-only ml-2">Actualizar</span>
           </Button>
         </div>
       </div>
@@ -498,7 +498,7 @@ export function KitchenView({}: KitchenViewProps) {
             <div className="flex items-center gap-2 text-red-800">
               <AlertCircle className="h-5 w-5" />
               <span>
-                {getUrgentOrders().length} pedido(s) llevan más de 15 minutos esperando
+                {getUrgentOrders().length} pedido(s) llevan más de 30 minutos esperando
               </span>
             </div>
           </CardContent>
@@ -540,6 +540,7 @@ export function KitchenView({}: KitchenViewProps) {
             </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="collapsible-section-content">
+              <div className="kitchen-carousel-wrapper">
               <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
                 {getDisplayOrders(
                   pendingOrders.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()),
@@ -560,6 +561,7 @@ export function KitchenView({}: KitchenViewProps) {
                   );
                 })}
             </div>
+              </div>
               {!isPendingOnlyOpen && pendingOrders.length > DEFAULT_DISPLAY_LIMIT && (
                 <button 
                   className="section-view-more"
@@ -587,6 +589,7 @@ export function KitchenView({}: KitchenViewProps) {
             </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="collapsible-section-content">
+              <div className="kitchen-carousel-wrapper">
               <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
                 {getDisplayOrders(
                   preparingOrders.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()),
@@ -607,6 +610,7 @@ export function KitchenView({}: KitchenViewProps) {
                   );
                 })}
             </div>
+              </div>
               {!isPreparingOnlyOpen && preparingOrders.length > DEFAULT_DISPLAY_LIMIT && (
                 <button 
                   className="section-view-more"
@@ -634,6 +638,7 @@ export function KitchenView({}: KitchenViewProps) {
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="collapsible-section-content">
+              <div className="kitchen-carousel-wrapper">
               <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
                 {getDisplayOrders(waitingSegundoOrders, isWaitingSegundoOnlyOpen).map((order) => (
                   <KitchenOrderCard
@@ -646,6 +651,7 @@ export function KitchenView({}: KitchenViewProps) {
                     onCloseDetailModal={() => setDetailModalOrderId(null)}
                   />
                 ))}
+              </div>
               </div>
               {!isWaitingSegundoOnlyOpen && waitingSegundoOrders.length > DEFAULT_DISPLAY_LIMIT && (
                 <button 

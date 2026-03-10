@@ -235,4 +235,9 @@
   height: 1.25rem;
 }
 
-
+/* Hide specific nav links on mobile/tablet */
+@media (max-width: 1024px) {
+  .nav-link-hide-mobile {
+    display: none !important;
+  }
+}

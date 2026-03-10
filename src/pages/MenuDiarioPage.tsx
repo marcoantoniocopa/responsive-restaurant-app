@@ -805,7 +805,6 @@ export function MenuDiarioPage() {
         </div>
         <div className="menu-diario-header-actions">
           <Button 
-            variant="outline" 
             onClick={handleApplyTodaysMenu}
             disabled={isApplying}
           >
