@@ -10,6 +10,7 @@ import { useToast } from "../hooks/use-toast";
 import { useConfig } from "../contexts/ConfigContext";
 import { useSocket } from "../contexts/SocketContext";
 import { ORDER_STATUS } from "../constants/orderStatus";
+import { playNewOrderNotificationSound } from "../lib/kitchenNotificationSound";
 import "../styles/kitchen.css";
 import "../styles/connection-status.css";
 
@@ -113,7 +114,9 @@ export function KitchenView({}: KitchenViewProps) {
     // Handler for new order created
     const handleOrderCreated = (order: any) => {
       console.log('📥 New order received:', order.orderNumber);
-      
+
+      playNewOrderNotificationSound();
+
       // Transform and add the new order to the list
       const newOrder: KitchenOrder = {
         id: order._id,

@@ -130,16 +130,16 @@ export function MenuDiarioPage() {
     return `${y}-${m}-${d}`;
   };
 
-  // Get the local date portion from a date string (YYYY-MM-DD)
+  // Get the date portion from a date string (YYYY-MM-DD) using UTC to match stored calendar date
   const getDatePortion = (dateString: string): string => {
     const date = new Date(dateString);
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
+    const y = date.getUTCFullYear();
+    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(date.getUTCDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   };
 
-  // Check if a date is today
+  // Check if a date is today (compare stored calendar date with browser's local today)
   const isToday = (dateString: string) => {
     const today = getTodayString();
     const menuDate = getDatePortion(dateString);
@@ -153,11 +153,11 @@ export function MenuDiarioPage() {
     return menuDate < today;
   };
 
-  // Format date for display (using local timezone)
+  // Format date for display (use UTC to show the stored calendar date, not local conversion)
   const formatDate = (dateString: string) => {
     const parsed = new Date(dateString);
-    const date = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), 12, 0, 0);
-    return date.toLocaleDateString('es-ES', {
+    return parsed.toLocaleDateString('es-ES', {
+      timeZone: 'UTC',
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -412,14 +412,12 @@ export function MenuDiarioPage() {
         segundoProductName: s.name,
         guarniciones: segundoGuarniciones[s.id] || [],
         availablePlates: segundoPlates[s.id] ? parseInt(segundoPlates[s.id], 10) : null
-      })).filter(sg => sg.guarniciones.length > 0);
+      }));
 
-      // Create date at local midnight, then send as ISO (UTC representation of local midnight)
-      const [y, m, d] = selectedDate.split('-').map(Number);
-      const localMidnight = new Date(y, m - 1, d, 0, 0, 0, 0);
-
+      // Send date as UTC midnight for the selected calendar date (avoids timezone shift)
+      // e.g. user selects March 12 -> "2026-03-12T00:00:00.000Z"
       const payload = {
-        date: localMidnight.toISOString(),
+        date: `${selectedDate}T00:00:00.000Z`,
         categorySelections,
         segundoGuarniciones: segundoGuarnicionesArray
       };
