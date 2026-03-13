@@ -5,7 +5,8 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Card, CardContent, CardHeader } from "./ui/card";
-import { RefreshCw, TrendingUp, Clock, CheckCircle, Plus, Zap, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshCw, TrendingUp, Clock, CheckCircle, Plus, Zap, Loader2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Input } from "./ui/input";
 import { Currency } from "./Currency";
 import { apiClient } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
@@ -42,6 +43,7 @@ export function CashierView({}: CashierViewProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [availability, setAvailability] = useState<SegundoAvailability[]>([]);
   const [showAvailability, setShowAvailability] = useState(isLunchTime());
+  const [searchName, setSearchName] = useState("");
   const [orderCounts, setOrderCounts] = useState({
     all: 0,
     reserva: 0,
@@ -267,6 +269,10 @@ export function CashierView({}: CashierViewProps) {
     setCurrentPage(newPage);
   };
 
+  const filteredOrders = searchName.trim()
+    ? orders.filter(o => o.customerName?.toLowerCase().includes(searchName.toLowerCase()))
+    : orders;
+
   // Stats from orderCounts (not paginated)
   const stats = {
     total: orderCounts.all,
@@ -408,8 +414,19 @@ export function CashierView({}: CashierViewProps) {
 
         {/* Single content area - paginated from server */}
         <div className="space-y-4 mt-4">
+          {/* Search by client name */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nombre de cliente..."
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {orders.map((order) => (
+            {filteredOrders.map((order) => (
               <OrderCard
                 key={order.id}
                 order={order}
@@ -480,9 +497,11 @@ export function CashierView({}: CashierViewProps) {
         </div>
       </Tabs>
 
-      {orders.length === 0 && (
+      {filteredOrders.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">No hay pedidos disponibles</p>
+          <p className="text-muted-foreground">
+            {searchName.trim() ? "No se encontraron pedidos para ese cliente" : "No hay pedidos disponibles"}
+          </p>
         </div>
       )}
     </div>
