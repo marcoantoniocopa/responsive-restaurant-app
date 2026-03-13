@@ -8,7 +8,7 @@
   padding: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: #ffffff;
+  background-color: var(--card);
   margin-bottom: 0.75rem;
 }
 
@@ -41,7 +41,7 @@
   justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  background-color: #ffffff;
+  background-color: var(--card);
 }
 
 .radio-item.selected .radio-indicator,
@@ -57,7 +57,7 @@
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background-color: #ffffff;
+  background-color: var(--card);
 }
 
 /* Payment modal */
@@ -83,7 +83,7 @@
 }
 
 .payment-modal-content {
-  background-color: #ffffff;
+  background-color: var(--card);
   border-radius: 0.75rem;
   padding: 1.5rem;
   max-width: 28rem;
@@ -118,7 +118,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: 0.75rem;
-  background-color: #ffffff;
+  background-color: var(--card);
 }
 
 .payment-method-option:hover {

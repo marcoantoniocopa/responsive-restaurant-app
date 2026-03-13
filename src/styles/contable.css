@@ -72,7 +72,7 @@
    ============================================== */
 
 .contable-filters-card {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid #e5e7eb;
 }
 
@@ -175,7 +175,7 @@
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
   font-size: 0.875rem;
-  background: #ffffff;
+  background: var(--card);
   color: #111827;
 }
 
@@ -254,7 +254,7 @@
 }
 
 .stat-card-contable {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid #e5e7eb;
   transition: box-shadow 0.15s ease;
 }
@@ -325,7 +325,7 @@
    ============================================== */
 
 .contable-charts-card {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid #e5e7eb;
 }
 
@@ -377,7 +377,7 @@
    ============================================== */
 
 .contable-table-card {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid #e5e7eb;
 }
 
