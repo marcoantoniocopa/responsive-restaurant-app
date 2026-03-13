@@ -47,7 +47,7 @@ export function Navigation() {
   const navItems = [
     {
       path: '/pedidos',
-      label: 'Pedidos',
+      label: 'Reservas',
       icon: ShoppingBag,
       show: hasRole('admin') || hasRole('cashier'),
     },

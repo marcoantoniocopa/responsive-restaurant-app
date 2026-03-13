@@ -146,6 +146,7 @@ export function NewOrderPage({ quickMode = false }: NewOrderPageProps) {
   useEffect(() => {
     if (orderType === "takeaway") {
       setTableNumber(null);
+      setTimeout(() => (document.getElementById("customerName") as HTMLInputElement)?.focus(), 0);
     }
   }, [orderType]);
 

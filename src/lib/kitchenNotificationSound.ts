@@ -14,7 +14,7 @@ export function playNewOrderNotificationSound(): void {
       gainNode.connect(audioContext.destination);
 
       oscillator.frequency.value = frequency;
-      oscillator.type = 'sine';
+      oscillator.type = 'triangle';
 
       gainNode.gain.setValueAtTime(0, startTime);
       gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.02);
@@ -26,9 +26,10 @@ export function playNewOrderNotificationSound(): void {
     };
 
     const play = () => {
-      // Two-tone chime: C5 (523 Hz) then E5 (659 Hz), total ~2 seconds
-      playTone(523.25, 0, 0.6, 0.25);
-      playTone(659.25, 0.4, 1.6, 0.2);
+      // Three rapid dings: G5 → B5 → D6, ascending major triad, ~1.2 seconds total
+      playTone(784, 0.0, 0.35, 0.3);
+      playTone(988, 0.3, 0.35, 0.3);
+      playTone(1175, 0.6, 0.5, 0.28);
     };
 
     if (audioContext.state === 'suspended') {
