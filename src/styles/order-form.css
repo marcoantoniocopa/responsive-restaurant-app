@@ -3,7 +3,7 @@
 
 /* Container */
 .order-container {
-  max-width: 42rem;
+  max-width: 80rem;
   margin-left: auto;
   margin-right: auto;
   padding: 1rem;
@@ -11,6 +11,25 @@
 
 .order-container > * + * {
   margin-top: 1.5rem;
+}
+
+/* Two-column layout: customer info + menu side by side */
+.order-main-layout {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.order-customer-panel {
+  width: 22rem;
+  flex-shrink: 0;
+  position: sticky;
+  top: 1rem;
+}
+
+.order-menu-panel {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Header */
@@ -85,8 +104,8 @@
 
 /* Products List */
 .products-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
   margin-top: 1rem;
 }

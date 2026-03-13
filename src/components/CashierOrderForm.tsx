@@ -113,10 +113,11 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
         setProducts(availableProducts);
         setCategories(sortedCategories);
         
-        // Default to Completo category if exists
+        // Default to Completo category if exists, otherwise first category
         const completoCategory = sortedCategories.find(c => c.name === "Completo");
-        if (completoCategory) {
-          setSelectedCategory(completoCategory._id);
+        const defaultCategory = completoCategory ?? sortedCategories[0];
+        if (defaultCategory) {
+          setSelectedCategory(defaultCategory._id);
         }
       } catch (error) {
         console.error("Error al cargar los datos:", error);
@@ -417,7 +418,6 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
               <>
                 {/* Category Tabs */}
                 <Tabs
-                  defaultValue="all"
                   value={selectedCategory}
                   onValueChange={setSelectedCategory}
                   className="category-tabs"
@@ -432,9 +432,6 @@ export function CashierOrderForm({ onOrderSubmit, onClose }: CashierOrderFormPro
                         {category.name}
                       </TabsTrigger>
                     ))}
-                    <TabsTrigger value="all" className="category-tab">
-                      Todos
-                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
 

@@ -10,6 +10,7 @@ import { Currency } from "./Currency";
 import { apiClient } from "../lib/api";
 import { useToast } from "../hooks/use-toast";
 import { useConfig } from "../contexts/ConfigContext";
+import { useAuth } from "../contexts/AuthContext";
 import { ORDER_STATUS } from "../constants/orderStatus";
 
 interface SegundoAvailability {
@@ -51,6 +52,7 @@ export function CashierView({}: CashierViewProps) {
   });
   const { toast } = useToast();
   const { getOrderStatusName, getOrderStatusCode } = useConfig();
+  const { hasRole } = useAuth();
   const isInitialMount = useRef(true);
 
   // Get local day start and end as ISO strings (UTC)
@@ -352,15 +354,17 @@ export function CashierView({}: CashierViewProps) {
           </CardContent>
         </Card>
         
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="flex items-center justify-center mb-2">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-            </div>
-            <p className="text-2xl"><Currency amount={stats.revenue} large /></p>
-            <p className="text-sm text-muted-foreground">Ingresos Hoy</p>
-          </CardContent>
-        </Card>
+        {hasRole('admin') && (
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="flex items-center justify-center mb-2">
+                <TrendingUp className="h-5 w-5 text-blue-600" />
+              </div>
+              <p className="text-2xl"><Currency amount={stats.revenue} large /></p>
+              <p className="text-sm text-muted-foreground">Ingresos Hoy</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Orders Tabs */}

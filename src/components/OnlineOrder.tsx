@@ -245,157 +245,161 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
         </p>
       </div>
 
-      {/* Customer Info */}
-      <Card>
-        <CardHeader>
-          <h3>Información del Cliente</h3>
-        </CardHeader>
-        <CardContent className="form-fields-group">
-          <div className="form-field">
-            <Label htmlFor="customerName" className="form-label form-label--required">Nombre del Cliente</Label>
-            <Input
-              id="customerName"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Ingresa tu nombre"
-              className="input-field"
-            />
-          </div>
-          <div className="form-field">
-            <Label htmlFor="observation" className="form-label">Observaciones (opcional)</Label>
-            <textarea
-              id="observation"
-              value={observation}
-              onChange={(e) => setObservation(e.target.value)}
-              placeholder="Ej: Sin cebolla, extra picante..."
-              className="textarea-field textarea-field--optional"
-              rows={2}
-              maxLength={250}
-            />
-          </div>
-          <div className="form-field">
-            <Label htmlFor="pickupTime" className="form-label">Hora de recojo (opcional)</Label>
-            <select
-              id="pickupTime"
-              value={pickupTimeSlot}
-              onChange={(e) => setPickupTimeSlot(e.target.value)}
-              className="input-field input-field--optional"
-            >
-              <option value="">Selecciona una hora</option>
-              {timeSlots.map((slot) => (
-                <option key={slot} value={slot}>
-                  {slot}
-                </option>
-              ))}
-            </select>
-            {pickupTimeSlot && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Recojo hoy a las {pickupTimeSlot}
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="order-main-layout">
+        {/* Customer Info */}
+        <div className="order-customer-panel">
+          <Card>
+            <CardHeader>
+              <h3>Información del Cliente</h3>
+            </CardHeader>
+            <CardContent className="form-fields-group">
+              <div className="form-field">
+                <Label htmlFor="customerName" className="form-label form-label--required">Nombre del Cliente</Label>
+                <Input
+                  id="customerName"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Ingresa tu nombre"
+                  className="input-field"
+                />
+              </div>
+              <div className="form-field">
+                <Label htmlFor="observation" className="form-label">Observaciones (opcional)</Label>
+                <textarea
+                  id="observation"
+                  value={observation}
+                  onChange={(e) => setObservation(e.target.value)}
+                  placeholder="Ej: Sin cebolla, extra picante..."
+                  className="textarea-field textarea-field--optional"
+                  rows={2}
+                  maxLength={250}
+                />
+              </div>
+              <div className="form-field">
+                <Label htmlFor="pickupTime" className="form-label">Hora de recojo (opcional)</Label>
+                <select
+                  id="pickupTime"
+                  value={pickupTimeSlot}
+                  onChange={(e) => setPickupTimeSlot(e.target.value)}
+                  className="input-field input-field--optional"
+                >
+                  <option value="">Selecciona una hora</option>
+                  {timeSlots.map((slot) => (
+                    <option key={slot} value={slot}>
+                      {slot}
+                    </option>
+                  ))}
+                </select>
+                {pickupTimeSlot && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Recojo hoy a las {pickupTimeSlot}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Menu Items */}
-      <div>
-        <h3 className="order-section-title">Menú del día</h3>
-        
-        {isLoading ? (
-          <div className="loading-state">
-            <Loader2 className="loading-spinner" />
-          </div>
-        ) : (
-          <>
-            {/* Category Tabs */}
-            <Tabs
-              defaultValue="all"
-              value={selectedCategory}
-              onValueChange={setSelectedCategory}
-              className="category-tabs"
-            >
-              <TabsList className="category-tabs-list">
-                {categories.map((category) => (
-                  <TabsTrigger
-                    key={category._id}
-                    value={category._id}
-                    className="category-tab"
-                  >
-                    {category.name}
+        {/* Menu Items */}
+        <div className="order-menu-panel">
+          <h3 className="order-section-title">Menú del día</h3>
+
+          {isLoading ? (
+            <div className="loading-state">
+              <Loader2 className="loading-spinner" />
+            </div>
+          ) : (
+            <>
+              {/* Category Tabs */}
+              <Tabs
+                defaultValue="all"
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+                className="category-tabs"
+              >
+                <TabsList className="category-tabs-list">
+                  {categories.map((category) => (
+                    <TabsTrigger
+                      key={category._id}
+                      value={category._id}
+                      className="category-tab"
+                    >
+                      {category.name}
+                    </TabsTrigger>
+                  ))}
+                  <TabsTrigger value="all" className="category-tab">
+                    Todos
                   </TabsTrigger>
-                ))}
-                <TabsTrigger value="all" className="category-tab">
-                  Todos
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+                </TabsList>
+              </Tabs>
 
-            {/* Products List */}
-            <div className="products-list">
-              {filteredProducts.length === 0 ? (
-                <Card>
-                  <CardContent className="empty-state">
-                    No hay productos disponibles en esta categoría.
-                  </CardContent>
-                </Card>
-              ) : (
-                filteredProducts.map((product) => (
-                  <Card key={product._id}>
-                    <CardContent className="product-card">
-                      <div className="product-card-content">
-                        <div className="product-info">
-                          <div className="product-header">
-                            <h4 className="product-name">{product.name}</h4>
-                            <Badge variant="secondary" className="product-price-badge">
-                              <Currency amount={product.sellPrice} />
-                            </Badge>
+              {/* Products List */}
+              <div className="products-list">
+                {filteredProducts.length === 0 ? (
+                  <Card>
+                    <CardContent className="empty-state">
+                      No hay productos disponibles en esta categoría.
+                    </CardContent>
+                  </Card>
+                ) : (
+                  filteredProducts.map((product) => (
+                    <Card key={product._id}>
+                      <CardContent className="product-card">
+                        <div className="product-card-content">
+                          <div className="product-info">
+                            <div className="product-header">
+                              <h4 className="product-name">{product.name}</h4>
+                              <Badge variant="secondary" className="product-price-badge">
+                                <Currency amount={product.sellPrice} />
+                              </Badge>
+                            </div>
+                            <p className="product-description">
+                              {product.description || "Producto delicioso"}
+                            </p>
                           </div>
-                          <p className="product-description">
-                            {product.description || "Producto delicioso"}
-                          </p>
-                        </div>
-                        
-                        <div className="product-actions">
-                          {cart[product._id] ? (
-                            <div className="quantity-controls">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => removeFromCart(product._id)}
-                                className="quantity-btn"
-                              >
-                                <Minus className="quantity-btn-icon" />
-                              </Button>
-                              <span className="quantity-value">
-                                {cart[product._id]}
-                              </span>
+
+                          <div className="product-actions">
+                            {cart[product._id] ? (
+                              <div className="quantity-controls">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => removeFromCart(product._id)}
+                                  className="quantity-btn"
+                                >
+                                  <Minus className="quantity-btn-icon" />
+                                </Button>
+                                <span className="quantity-value">
+                                  {cart[product._id]}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  onClick={() => addToCart(product._id)}
+                                  className="quantity-btn"
+                                >
+                                  <Plus className="quantity-btn-icon" />
+                                </Button>
+                              </div>
+                            ) : (
                               <Button
                                 size="sm"
                                 onClick={() => addToCart(product._id)}
-                                className="quantity-btn"
+                                className="add-btn"
                               >
-                                <Plus className="quantity-btn-icon" />
+                                <Plus className="add-btn-icon" />
+                                Agregar
                               </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => addToCart(product._id)}
-                              className="add-btn"
-                            >
-                              <Plus className="add-btn-icon" />
-                              Agregar
-                            </Button>
-                          )}
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-          </>
-        )}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Cart Summary & Submit */}

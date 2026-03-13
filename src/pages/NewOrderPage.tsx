@@ -522,9 +522,6 @@ export function NewOrderPage({ quickMode = false }: NewOrderPageProps) {
                           {category.name}
                         </TabsTrigger>
                       ))}
-                      <TabsTrigger value="all">
-                        Todos
-                      </TabsTrigger>
                     </TabsList>
                   </Tabs>
 
