@@ -56,6 +56,7 @@ export function CashierView({}: CashierViewProps) {
   const { getOrderStatusName, getOrderStatusCode } = useConfig();
   const { hasRole } = useAuth();
   const isInitialMount = useRef(true);
+  const isSearchMount = useRef(true);
 
   // Get local day start and end as ISO strings (UTC)
   const getLocalDayRangeAsUTC = () => {
@@ -113,13 +114,14 @@ export function CashierView({}: CashierViewProps) {
       }
       
       const { dateFrom, dateTo } = getLocalDayRangeAsUTC();
-      const offset = (page - 1) * ORDERS_PER_PAGE;
-      
+      const isSearching = searchName.trim() !== "";
+      const offset = isSearching ? 0 : (page - 1) * ORDERS_PER_PAGE;
+
       // Build query params
       const params: any = {
         dateFrom,
         dateTo,
-        limit: ORDERS_PER_PAGE,
+        limit: isSearching ? 500 : ORDERS_PER_PAGE,
         offset,
       };
       
@@ -202,14 +204,25 @@ export function CashierView({}: CashierViewProps) {
     return () => clearInterval(timer);
   }, []);
 
-  // Refetch when page or tab changes (but not on initial mount)
+  // Refetch when page or tab changes (but not on initial mount, and not when search is active)
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
+    if (searchName.trim()) return;
     fetchOrders(false);
   }, [currentPage, selectedTab]);
+
+  // Refetch when search term changes
+  useEffect(() => {
+    if (isSearchMount.current) {
+      isSearchMount.current = false;
+      return;
+    }
+    setCurrentPage(1);
+    fetchOrders(false, 1);
+  }, [searchName]);
 
   const handleRefresh = () => {
     fetchOrders(false);
@@ -441,7 +454,7 @@ export function CashierView({}: CashierViewProps) {
           </div>
 
           {/* Pagination Controls - Bottom Right */}
-          {totalPages > 1 && (
+          {totalPages > 1 && !searchName.trim() && (
             <div className="flex items-center justify-end gap-2 pt-4">
               <span className="text-sm text-muted-foreground mr-2">
                 {((currentPage - 1) * ORDERS_PER_PAGE) + 1}-{Math.min(currentPage * ORDERS_PER_PAGE, totalCount)} de {totalCount}
