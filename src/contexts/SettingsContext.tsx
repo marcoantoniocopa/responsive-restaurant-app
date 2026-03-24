@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { apiClient } from '../lib/api';
+import { useAuth } from './AuthContext';
 
 interface SettingsContextType {
   currencySymbol: string;
@@ -28,43 +29,41 @@ interface SettingsProviderProps {
 }
 
 export function SettingsProvider({ children }: SettingsProviderProps) {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [currencySymbol, setCurrencySymbol] = useState<string>('$');
   const [numberOfTables, setNumberOfTables] = useState<number>(6);
   const [loading, setLoading] = useState(false);
-  const [fetchAttempted, setFetchAttempted] = useState(false);
 
-  const fetchSettings = async (force = false) => {
-    if (fetchAttempted && !force) return; // Prevent retry loops on error
-    
+  const fetchSettings = useCallback(async () => {
     setLoading(true);
-    setFetchAttempted(true);
-    
     try {
       const settings = await apiClient.getSettings();
       setCurrencySymbol(settings.currencySymbol || '$');
       setNumberOfTables(settings.numberOfTables || 6);
     } catch (error) {
       console.error('Failed to load settings:', error);
-      // Use defaults if settings can't be loaded - don't retry automatically
       setCurrencySymbol('$');
       setNumberOfTables(6);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Fetch once on mount (not on login page)
+  // Load settings after login. Previously we only fetched on first mount; if that was /login, fetch never ran
+  // until "Guardar Configuración" called refreshSettings().
   useEffect(() => {
-    const isLoginPage = window.location.pathname === '/login' || window.location.pathname === '/';
-    if (!isLoginPage && !fetchAttempted) {
-      fetchSettings();
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      setCurrencySymbol('$');
+      setNumberOfTables(6);
+      return;
     }
-  }, []); // Empty dependency - run only once on mount
+    void fetchSettings();
+  }, [isAuthenticated, authLoading, fetchSettings]);
 
-  const refreshSettings = async () => {
-    setFetchAttempted(false);
-    await fetchSettings(true);
-  };
+  const refreshSettings = useCallback(async () => {
+    await fetchSettings();
+  }, [fetchSettings]);
 
   return (
     <SettingsContext.Provider value={{ currencySymbol, numberOfTables, loading, refreshSettings }}>
@@ -72,4 +71,3 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     </SettingsContext.Provider>
   );
 }
-
