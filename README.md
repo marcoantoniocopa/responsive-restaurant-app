@@ -354,7 +354,7 @@ const orderData = {
   customerName: customerName,
   items: orderItems,
   paymentMethod: 1,      // 1 = Efectivo
-  orderType: 3,          // 3 = Llevar Web (online)
+  orderType: 3,          // 3 = Reserva (online)
   isReservation: true,   // Online orders are reservations
 };
 await apiClient.createCustomerOrder(orderData);
@@ -404,7 +404,7 @@ await apiClient.createOrder(orderData);
 |----------------|-----|------|-------------|
 | Takeaway (Cashier) | 1 | Llevar | Cashier takeaway order |
 | Dine-in | 2 | En Local | Restaurant table order |
-| Takeaway (Online) | 3 | Llevar Web | Customer online order |
+| Takeaway (Online) | 3 | Reserva | Customer online order |
 
 ### Currency Formatting
 

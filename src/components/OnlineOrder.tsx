@@ -205,7 +205,7 @@ export function OnlineOrder({ onOrderSubmit }: OnlineOrderProps) {
         customerName: customerName.trim(),
         items: orderItems,
         paymentMethod: 1,  // 1 = Efectivo (default for online orders)
-        orderType: 3,      // 3 = Llevar Web (online takeaway)
+        orderType: 3,      // 3 = Reserva (online takeaway)
         isReservation: true,
         reservationTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),  // 30 minutes from now
         observation: observation.trim() || undefined,

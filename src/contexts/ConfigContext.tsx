@@ -26,7 +26,7 @@ const FALLBACK_PAYMENT_METHODS: Record<number, string> = {
 const FALLBACK_ORDER_TYPES: Record<number, string> = {
   1: "Llevar",
   2: "En Local",
-  3: "Llevar Web",
+  3: "Reserva",
 };
 
 const FALLBACK_ORDER_STATUSES: Record<number, { name: string; code: string }> = {
