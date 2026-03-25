@@ -299,7 +299,8 @@ export function KitchenView({}: KitchenViewProps) {
   const handleFilterPreparing = () => {
     setIsPendingOpen(false);
     setIsPreparingOpen(true);
-    setIsWaitingSegundoOpen(true);
+    // Keep the section visible (if it has orders), but collapse it unless user opens it
+    setIsWaitingSegundoOpen(false);
     setIsCompletedOpen(false);
     setIsCancelledOpen(false);
   };
@@ -625,7 +626,7 @@ export function KitchenView({}: KitchenViewProps) {
         )}
 
         {/* Waiting Segundo Orders - Sopa served, waiting for segundo */}
-        {isWaitingSegundoOpen && waitingSegundoOrders.length > 0 && (
+        {waitingSegundoOrders.length > 0 && (
           <Collapsible open={isWaitingSegundoOpen} onOpenChange={setIsWaitingSegundoOpen}>
             <CollapsibleTrigger className="collapsible-section-header collapsible-section-orange">
               <div className="collapsible-section-title">
